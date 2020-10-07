@@ -31,9 +31,10 @@ public class OAuth {
     private static String token;
 
     /**
-     * tries to authenticate with github.
+     * tries to ask a user for authorisation.
      * @param clientId the oauth client id
-     * @param scopes an array containing the scopes you would like to request
+     * @param scopes an array containing the scopes you would like to request. {@link Scopes}
+     * @see Scopes for more info
      */
     public static void authenticate(String clientId, String[] scopes) {
         // request for user and device code
