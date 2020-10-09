@@ -52,6 +52,7 @@ public class Github {
                 return chain.proceed(chain.request().newBuilder()
                         .addHeader("accept", MediaTypes.DEFAULT)
                         .addHeader("accept", MediaTypes.MERCY_PREVIEW)
+                        .addHeader("accept", MediaTypes.NEBULA_PREVIEW)
                         .addHeader("user-agent", USER_AGENT)
                         .addHeader("authorization", String.format("%s %s", type == TokenType.OAUTH ? "token" : "basic", token))
                         .build());
