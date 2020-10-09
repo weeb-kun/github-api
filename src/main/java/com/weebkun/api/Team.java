@@ -16,33 +16,21 @@ Copyright 2020 weebkun
 
 package com.weebkun.api;
 
-public class Owner {
-    private String login;
-    private String id;
+/**
+ * represents a team in an organisation.
+ */
+public class Team {
+    private int id;
     private String node_id;
 
-    /**
-     * gets the name of this owner.
-     * @return this owner's name
-     */
-    public String getName(){
-        return login;
-    }
-
-    // bruh
-    public String avatar_url;
-    public String gravatar_id;
     public String url;
     public String html_url;
-    public String followers_url;
-    public String following_url;
-    public String gists_url;
-    public String starred_url;
-    public String subscriptions_url;
-    public String organizations_url;
-    public String repos_url;
-    public String events_url;
-    public String received_events_url;
-    public String type;
-    public String site_admin;
+    public String name;
+    public String slug;
+    public String description;
+    public String privacy;
+    public String permission;
+    public String members_url;
+    public String repositories_url;
+    public Team parent;
 }

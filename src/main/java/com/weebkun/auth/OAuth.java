@@ -18,6 +18,7 @@ package com.weebkun.auth;
 
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
+import com.weebkun.api.Github;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -38,8 +39,6 @@ public class OAuth {
      */
     public static void authenticate(String clientId, String[] scopes) {
         // request for user and device code
-        OkHttpClient client = new OkHttpClient();
-        Moshi moshi = new Moshi.Builder().build();
         // set body params
         String json = String.format("{" +
                 "'client_id': '%s'," +
@@ -48,12 +47,11 @@ public class OAuth {
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
                 .url("https://github.com/login/device/code")
-                .addHeader("accept", "application/json")
                 .post(body)
                 .build();
         while(!authorised) {
-            try ( Response response = client.newCall(request).execute()) {
-                JsonAdapter<ResponseDeviceCode> adapter = moshi.adapter(ResponseDeviceCode.class);
+            try ( Response response = Github.getClient().newCall(request).execute()) {
+                JsonAdapter<ResponseDeviceCode> adapter = Github.getMoshi().adapter(ResponseDeviceCode.class);
                 ResponseDeviceCode res = adapter.fromJson(response.body().source());
                 System.out.printf("go to %s for verification. the code is %s\n", res.verification_uri, res.user_code);
                 // poll github if user has authorised already
@@ -73,7 +71,6 @@ public class OAuth {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        OkHttpClient client = new OkHttpClient();
         String json = String.format("{" +
                 "'client_id': '%s'," +
                 "'device_code': '%s'" +
@@ -82,12 +79,10 @@ public class OAuth {
         RequestBody body = RequestBody.create(json, MediaType.get("application/json"));
         Request request = new Request.Builder()
                 .url("https://github.com/login/oauth/access_token")
-                .addHeader("accept", "application/json")
                 .post(body)
                 .build();
-        try (Response response = client.newCall(request).execute()) {
-            Moshi moshi = new Moshi.Builder().build();
-            JsonAdapter<TokenResponse> adapter = moshi.adapter(TokenResponse.class);
+        try (Response response = Github.getClient().newCall(request).execute()) {
+            JsonAdapter<TokenResponse> adapter = Github.getMoshi().adapter(TokenResponse.class);
             TokenResponse res = adapter.fromJson(response.body().source());
             if(res.access_token != null) {
                 // success

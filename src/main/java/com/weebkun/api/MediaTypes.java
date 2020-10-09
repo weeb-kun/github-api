@@ -28,6 +28,7 @@ public class MediaTypes {
     public static final String TEXT = "application/vnd.github.v3.text+json";
     public static final String HTML = "application/vnd.github.v3.html+json";
     public static final String FULL = "application/vnd.github.v3.full+json";
+    public static final String MERCY_PREVIEW = "application/vnd.github.mercy-preview+json";
 
     public static final String BLOB_DEFAULT = "application/vnd.github.v3+json";
     public static final String BLOB_RAW = "application/vnd.github.v3.raw";
@@ -41,4 +42,9 @@ public class MediaTypes {
 
     public static final String GIST_RAW = "application/vnd.github.v3.raw";
     public static final String GIST_BASE64 = "application/vnd.github.v3.base64";
+
+    /**
+     * content type for building request bodies
+     */
+    public static final String REQUEST_BODY_TYPE = "application/json; charset=utf-8";
 }
