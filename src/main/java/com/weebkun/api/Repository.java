@@ -50,9 +50,8 @@ public class Repository {
         try (Response response = Github.getClient().newCall(request).execute()){
             if(response.code() != 200) throw new HttpErrorException(response);
             repo = Github.getGson().fromJson(response.body().string(), Repository.class);
-        }catch (IOException | HttpErrorException e) {
+        }catch (IOException e) {
             e.printStackTrace();
-            if(e instanceof HttpErrorException) System.out.printf("error: %s\n%s", ((HttpErrorException) e).status + " " + ((HttpErrorException) e).description, ((HttpErrorException) e).body);
         }
         return repo;
     }
@@ -86,7 +85,7 @@ public class Repository {
      * @throws UnauthorisedException if you do not have access to the specified resource
      * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#update-a-repository">github</a> for more info on params
      */
-    public static void update(String owner, String name, String json) throws HttpErrorException, UnauthorisedException{
+    public static void update(String owner, String name, String json) throws UnauthorisedException{
         RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s", owner, name))
@@ -96,9 +95,8 @@ public class Repository {
             if(response.code() != 200) throw new HttpErrorException(response);
             Repository repo = Github.getGson().fromJson(response.body().string(), Repository.class);
             System.out.printf("Repository %s successfully updated. Response:\nstatus: %s\n%s\n\n%s", repo.full_name, response.code() + " " + response.message(), response.headers(), response.body().string());
-        }catch (IOException | HttpErrorException e) {
+        }catch (IOException e) {
             e.printStackTrace();
-            if(e instanceof HttpErrorException) System.out.printf("error: %s\n%s\n", ((HttpErrorException) e).status + " " + ((HttpErrorException) e).description, ((HttpErrorException) e).body);
         }
     }
 
@@ -117,9 +115,8 @@ public class Repository {
                 .build();
         try(Response response = Github.getClient().newCall(request).execute()) {
             if(response.code() != 204) throw new UnauthorisedException(response);
-        }catch (IOException | UnauthorisedException e) {
+        }catch (IOException e) {
             e.printStackTrace();
-            if(e instanceof UnauthorisedException) System.out.printf("error: failed to delete repository. response: %s\n\n%s\n", ((UnauthorisedException) e).status + " " + ((UnauthorisedException) e).description, ((UnauthorisedException) e).body);
         }
     }
 
@@ -127,8 +124,9 @@ public class Repository {
      * creates a repository for the authenticated user.
      * use {@link Builder} if you don't want to build the json string yourself.
      * @param json the json string
+     * @throws HttpErrorException if the create operation failed
      */
-    public static void create(String json) {
+    public static void create(String json) throws HttpErrorException{
         // post /user/repos
         RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
         Request request = new Request.Builder()
@@ -137,9 +135,8 @@ public class Repository {
                 .build();
         try(Response response = Github.getClient().newCall(request).execute()){
             if(response.code() != 201) throw new HttpErrorException(response);
-        }catch (IOException | HttpErrorException e) {
+        }catch (IOException e) {
             e.printStackTrace();
-            if(e instanceof HttpErrorException) System.out.printf("error: response: %s\n\n%s\n", ((HttpErrorException) e).status + " " + ((HttpErrorException) e).description, ((HttpErrorException) e).body);
         }
     }
 
@@ -728,14 +725,10 @@ public class Repository {
 
         /**
          * updates a repository in github with the specified fields.
+         * @throws UnauthorisedException if the update operation failed
          */
-        public void update() {
-            try {
+        public void update() throws UnauthorisedException{
                 Repository.update(owner, name, json());
-            } catch (HttpErrorException e) {
-                System.out.printf("error: response: %s\n\n%s",e.status + e.description, e.body);
-                e.printStackTrace();
-            }
         }
     }
 
@@ -765,8 +758,9 @@ public class Repository {
 
         /**
          * sends a post request to github requesting to create this repository.
+         * @throws HttpErrorException if the create operation failed
          */
-        public void build() {
+        public void build() throws HttpErrorException{
             String json = String.format("{" +
                             "'name':'%s'" +
                             "'description': '%s'" +
@@ -824,10 +818,10 @@ public class Repository {
 
         /**
          * creates an organisation repository. authenticated user must be part of that organisation.
-         * @throws UnauthorisedException if user is not a member of the organisation
+         * @throws HttpErrorException if user is not a member of the organisation or another error cause the create operation to fail.
          */
         @Override
-        public void build() throws UnauthorisedException{
+        public void build() throws HttpErrorException{
             String json = String.format("{" +
                             "'name':'%s'" +
                             "'description': '%s'" +
