@@ -424,6 +424,7 @@ public class Repository {
     /**
      * transfer this repository to another user or organisation.
      * @param newOwnerName the name of the new owner
+     * @param teamIds the array of team ids
      * @throws HttpErrorException if the transfer operation failed
      */
     public void transfer(String newOwnerName, int[] teamIds) throws HttpErrorException{

@@ -18,7 +18,7 @@ package com.weebkun.auth;
 
 /**
  * represents the response from an authentication request.
- * see <a href=https://docs.github.com/en/free-pro-team@latest/developers/apps/authorizing-oauth-apps#response-parameters">the github docs</a> for more information.
+ * see <a href="https://docs.github.com/en/free-pro-team@latest/developers/apps/authorizing-oauth-apps#response-parameters">the github docs</a> for more information.
  */
 public class ResponseDeviceCode {
     /**
