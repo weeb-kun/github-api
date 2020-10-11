@@ -88,7 +88,7 @@ authenticated user must have explicit permission to create repos in the specifie
 - `Github.getAuthenticatedUser()`<br>
 returns the authenticated user object.
 
-for more methods and examples, visit the docs at https://javadoc.io/doc/com.weebkun/github-api .
+for more methods and examples, visit the docs at https://javadoc.io/doc/com.github.weeb-kun/github-api/0.0.1/index.html.
 
 ## Documentation
-docs can be found at https://javadoc.io/doc/com.weebkun/github-api.
+docs can be found at https://javadoc.io/doc/com.github.weeb-kun/github-api/0.0.1/index.html.
