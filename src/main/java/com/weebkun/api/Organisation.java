@@ -23,6 +23,7 @@ public class Organisation {
      * @see Options for more info on params
      */
     public static Repository[] getRepos(String org, Options params) {
+        if(params.perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/orgs/%s/repos"
                         .concat(params.type != null ? String.format("?type=%s&", params.type) : "")

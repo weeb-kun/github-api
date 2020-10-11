@@ -159,6 +159,7 @@ public class Github {
      * @see Options for the properties you can configure
      */
     public static Repository[] listUserRepos(Options params) throws ParamConflictException, HttpErrorException{
+        if(params.perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
                 .url(ROOT + "/user/repos".concat(params.visibility != null ? String.format("?visibility=%s&", params.visibility) : "")
                 .concat(params.affiliation != null ? String.format("affiliation=%s&", params.affiliation) : "")

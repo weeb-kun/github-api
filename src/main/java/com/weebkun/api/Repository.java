@@ -67,6 +67,7 @@ public class Repository {
      * @return the list of repositories
      */
     public static Repository[] getAllPublic(String since, int perPage, String visibility) {
+        if(perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repositories?since=%s&per_page=%d&visibility=%s", since, perPage, visibility))
                 .build();
@@ -268,6 +269,7 @@ public class Repository {
      * @return the array of contributors
      */
     public User[] getContributors(boolean includeAnonymous, int resultsPerPage, int page){
+        if(resultsPerPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/contributors?anon=%s&per_page=%d&page=%d", owner.getName(), name, includeAnonymous, resultsPerPage, page))
                 .build();
@@ -348,6 +350,7 @@ public class Repository {
      * @return the array of tags paginated
      */
     public Tag[] listTags(int resultsPerPage, int page) {
+        if(resultsPerPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/tags?per_page=%d&page=%d", owner.getName(), name, resultsPerPage, page))
                 .build();
@@ -384,6 +387,7 @@ public class Repository {
      * @return the list of teams
      */
     public Team[] listTeams(int resultsPerPage, int page) {
+        if(resultsPerPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/teams?per_page=%d&page=%d", owner.getName(), name, resultsPerPage, page))
                 .build();
