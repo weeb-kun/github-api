@@ -122,8 +122,20 @@ public class Github {
         return GSON;
     }
 
+    /**
+     * get the global Moshi instance.
+     * @return the moshi instance
+     */
     public static Moshi getMoshi(){
         return moshi;
+    }
+
+    /**
+     * sets the user agent for all api requests.
+     * @param agent the string denoting the user agent.
+     */
+    public static void setAgent(String agent) {
+        Github.USER_AGENT = agent;
     }
 
     /**
