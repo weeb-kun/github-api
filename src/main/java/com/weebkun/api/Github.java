@@ -34,7 +34,7 @@ public class Github {
     private static TokenType type;
     private static final String ROOT = "https://api.github.com";
     private static OkHttpClient client = new OkHttpClient();
-    private static String USER_AGENT;
+    private static String USER_AGENT = "Java-github-api";
     private static final Gson GSON = new Gson();
     private static final Moshi moshi = new Moshi.Builder().build();
 
