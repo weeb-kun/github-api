@@ -160,6 +160,7 @@ public class Github {
      */
     public static Repository[] listUserRepos(Options params) throws ParamConflictException, HttpErrorException{
         if(params.perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
+        if(params.before != null && params.since != null) throw new ParamConflictException("since and before used together.");
         Request request = new Request.Builder()
                 .url(ROOT + "/user/repos".concat(params.visibility != null ? String.format("?visibility=%s&", params.visibility) : "")
                 .concat(params.affiliation != null ? String.format("affiliation=%s&", params.affiliation) : "")
@@ -167,7 +168,9 @@ public class Github {
                 .concat(params.sort != null ? String.format("sort=%s&", params.sort) : "")
                 .concat(params.direction != null ? String.format("direction=%s&", params.direction) : "")
                 .concat(params.perPage != 0 ? String.format("per_page=%d&", params.perPage) : "")
-                .concat(params.page != 0 ? String.format("page=%d", params.page) : ""))
+                .concat(params.page != 0 ? String.format("page=%d&", params.page) : "")
+                .concat(params.since != null ? String.format("since=%s", params.since) : "")
+                .concat(params.since == null && params.before != null ? String.format("before=%s", params.before) : ""))
                 .build();
         Repository[] repositories = {};
         try(Response response = client.newCall(request).execute()) {
