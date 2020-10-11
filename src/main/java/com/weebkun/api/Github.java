@@ -19,11 +19,8 @@ package com.weebkun.api;
 import com.google.gson.Gson;
 import com.squareup.moshi.Moshi;
 import com.weebkun.auth.OAuth;
-import com.weebkun.utils.AlreadyAuthenticatedException;
-import okhttp3.EventListener;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
+import com.weebkun.utils.*;
+import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -127,6 +124,61 @@ public class Github {
 
     public static Moshi getMoshi(){
         return moshi;
+    }
+
+    /**
+     * gets the authenticated user.
+     * if authenticated using oauth using the {@code user} scope or through basic authentication using a PAT,
+     * public and private info is returned. if the scope is not used, only public info is returned.
+     * @return the authenticated user
+     * @throws NotAuthenticatedException if there is no user currently authenticated in this app.
+     * @throws HttpErrorException if any other errors received.
+     */
+    public static User getAuthenticatedUser() throws NotAuthenticatedException, HttpErrorException {
+        Request request = new Request.Builder()
+                .url(ROOT + "/user")
+                .build();
+        User user = null;
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() == 401) throw new NotAuthenticatedException("error: user not authenticated.\nauthenticate using Github.authenticate() first.");
+            if(response.code() != 200) throw new HttpErrorException(response);
+            user = moshi.adapter(User.class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+
+    /**
+     * returns an array of repos that the authenticated user has explicit permission to access.
+     * @param params the {@link Options} object with the requested params
+     * @return the array of repos
+     * @throws ParamConflictException see {@link Options} for more info
+     * @throws UnauthorisedException if no user is currently authenticated
+     * @throws HttpErrorException if any other http error was received
+     * @see Options for the properties you can configure
+     */
+    public static Repository[] listUserRepos(Options params) throws ParamConflictException, HttpErrorException{
+        Request request = new Request.Builder()
+                .url(ROOT + "/user/repos".concat(params.visibility != null ? String.format("?visibility=%s&", params.visibility) : "")
+                .concat(params.affiliation != null ? String.format("affiliation=%s&", params.affiliation) : "")
+                .concat(params.type != null ? String.format("type=%s&", params.type) : "")
+                .concat(params.sort != null ? String.format("sort=%s&", params.sort) : "")
+                .concat(params.direction != null ? String.format("direction=%s&", params.direction) : "")
+                .concat(params.perPage != 0 ? String.format("per_page=%d&", params.perPage) : "")
+                .concat(params.page != 0 ? String.format("page=%d", params.page) : ""))
+                .build();
+        Repository[] repositories = {};
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() == 422) throw new ParamConflictException(String.format("error: type conflict: %s\n%s\n\n%s",
+                    response.code() + " " + response.message(), response.headers(), response.body()));
+            if(response.code() == 401) throw new UnauthorisedException(response);
+            if(response.code() != 200) throw new HttpErrorException(response);
+            repositories = GSON.fromJson(response.body().string(), Repository[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return repositories;
     }
 
     /**

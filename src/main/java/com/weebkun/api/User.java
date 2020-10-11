@@ -16,6 +16,11 @@ Copyright 2020 weebkun
 
 package com.weebkun.api;
 
+import okhttp3.Request;
+import okhttp3.Response;
+
+import java.io.IOException;
+
 /**
  * a user of github.
  */
@@ -23,6 +28,79 @@ public class User {
     private String login;
     private String id;
     private String node_id;
+
+    public String getLogin() {
+        return login;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getNodeId() {
+        return node_id;
+    }
+
+    /**
+     * returns an array of public repos for this user.
+     * default values of type=all, sort=full_name, direction=asc;
+     * @return the array of public repos
+     */
+    public Repository[] getRepos() {
+        return getRepos("all", "full_name", "asc");
+    }
+
+    /**
+     * returns an array of repos with sorting.
+     * @param type the type of repos. can be all, owner, or member.
+     * @param sort which field to sort by. can be created, updated, pushed, or full_name.
+     * @param direction the direction to sort. can be asc or desc.
+     * @return the array of repos
+     */
+    public Repository[] getRepos(String type, String sort, String direction) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/users/%s/repos?type=%s&sort=%s&direction=%s", name, type, sort, direction))
+                .build();
+        Repository[] repositories = {};
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            repositories = Github.getGson().fromJson(response.body().string(), Repository[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return repositories;
+    }
+
+    /**
+     * returns an array of repos with pagination.
+     * @param perPage results per page. max 100
+     * @param page the current page
+     * @return the array of repos
+     */
+    public Repository[] getRepos(int perPage, int page){
+        return getRepos("all", "full_name", "asc", perPage, page);
+    }
+
+    /**
+     * returns an array of repos with sorting and pagination.
+     * @param type the type of repos. can be all, owner, or member.
+     * @param sort the field to sort by. can be created, updated, pushed, or full_name.
+     * @param direction the direction of sorting. can be asc or desc.
+     * @param perPage results per page. max 100.
+     * @param page the current page
+     * @return the array of repos
+     */
+    public Repository[] getRepos(String type, String sort, String direction, int perPage, int page) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/users/%s/repos?type=%s&sort=%s&direction=%s&per_page=%d&page=%d", name, type, sort, direction, perPage, page))
+                .build();
+        Repository[] repositories = {};
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            repositories = Github.getGson().fromJson(response.body().string(), Repository[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return repositories;
+    }
 
     // omg kms
     public String avatar_url;
@@ -54,4 +132,12 @@ public class User {
     public int following;
     public String created_at;
     public String updated_at;
+    // private info. requires user scope
+    public int private_gists;
+    public int total_private_repos;
+    public int owned_private_repos;
+    public int disk_usage;
+    public int collaborators;
+    public boolean two_factor_authentication;
+    public Plan plan;
 }

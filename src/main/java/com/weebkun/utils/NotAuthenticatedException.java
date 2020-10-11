@@ -17,11 +17,15 @@ Copyright 2020 weebkun
 package com.weebkun.utils;
 
 /**
- * thrown when your app tries to call an endpoint that requires authentication.
+ * thrown when your app tries to call an endpoint that requires authentication or when this app is not authenticated yet.
  */
 public class NotAuthenticatedException extends RuntimeException {
 
     public NotAuthenticatedException(){
         super("called a restricted endpoint without proper authentication");
+    }
+
+    public NotAuthenticatedException(String message) {
+        super(message);
     }
 }

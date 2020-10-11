@@ -28,6 +28,9 @@ import java.io.IOException;
 
 /**
  * represents a repository in github.
+ *
+ * to retrieve or create organisation repos, see {@link Organisation}.
+ * @see Organisation
  */
 public class Repository {
 
