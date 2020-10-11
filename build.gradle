@@ -80,7 +80,7 @@ bintray {
         vcsUrl = 'https://github.com/weeb-kun/github-api'
         version {
             name = '0.0.1'
-            vscTag = 'v0.0.1'
+            vcsTag = 'v0.0.1'
         }
     }
 }
