@@ -67,6 +67,7 @@ public class Github {
     public static void authenticate(String clientId, String[] scopes) throws AlreadyAuthenticatedException {
         if(token != null) throw new AlreadyAuthenticatedException();
         OAuth.authenticate(clientId, scopes);
+        type = TokenType.OAUTH;
         // get token
         Github.token = OAuth.getToken();
     }
@@ -79,6 +80,7 @@ public class Github {
     public static void authenticate(String token) throws AlreadyAuthenticatedException {
         if(Github.token != null) throw new AlreadyAuthenticatedException();
         Github.token = token;
+        type = TokenType.BASIC;
     }
 
     /**
