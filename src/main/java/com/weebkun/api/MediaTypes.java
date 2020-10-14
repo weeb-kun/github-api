@@ -23,6 +23,10 @@ package com.weebkun.api;
  * check the X-GitHub-Media-Type header in the response for the media type.
  */
 public class MediaTypes {
+
+    // use this for oauth routes as they are not part of the rest api and will respond with 406 not acceptable when using DEFAULT.
+    public static final String JSON = "application/json";
+
     public static final String DEFAULT = "application/vnd.github.v3+json";
     public static final String RAW = "application/vnd.github.v3.raw+json";
     public static final String TEXT = "application/vnd.github.v3.text+json";

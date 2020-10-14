@@ -17,6 +17,7 @@ Copyright 2020 weebkun
 package com.weebkun.api;
 
 import com.google.gson.Gson;
+import com.squareup.moshi.JsonReader;
 import com.squareup.moshi.Moshi;
 import com.weebkun.auth.OAuth;
 import com.weebkun.utils.*;
@@ -42,19 +43,13 @@ public class Github {
 
     static {
         // default interceptor to add accept, user-agent and authorization headers to all requests
-        client.newBuilder().addInterceptor(new Interceptor() {
-            @NotNull
-            @Override
-            public Response intercept(@NotNull Chain chain) throws IOException {
-                return chain.proceed(chain.request().newBuilder()
-                        .addHeader("accept", MediaTypes.DEFAULT)
-                        .addHeader("accept", MediaTypes.MERCY_PREVIEW)
-                        .addHeader("accept", MediaTypes.NEBULA_PREVIEW)
-                        .addHeader("user-agent", USER_AGENT)
-                        .addHeader("authorization", String.format("%s %s", type == TokenType.OAUTH ? "token" : "basic", token))
-                        .build());
-            }
-        });
+        client = client.newBuilder().addInterceptor(chain -> chain.proceed(chain.request().newBuilder()
+                .addHeader("accept", MediaTypes.DEFAULT)
+                .addHeader("accept", MediaTypes.MERCY_PREVIEW)
+                .addHeader("accept", MediaTypes.NEBULA_PREVIEW)
+                .addHeader("user-agent", USER_AGENT)
+                .addHeader("authorization", String.format("%s %s", type == TokenType.OAUTH ? "token" : "basic", token))
+                .build())).build();
     }
 
     /**

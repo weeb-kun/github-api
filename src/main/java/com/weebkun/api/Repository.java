@@ -158,9 +158,9 @@ public class Repository {
      */
     public static void create(String templateOwner, String templateName, String owner, String name, String description, boolean isPrivate) throws HttpErrorException{
         RequestBody body = RequestBody.create(String.format("{" +
-                "'owner': '%s'" +
-                "'name': '%s'" +
-                "'description': '%s'" +
+                "'owner': '%s'," +
+                "'name': '%s'," +
+                "'description': '%s'," +
                 "'private': '%s'"+
                 "}", owner, name, description, isPrivate), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
         Request request = new Request.Builder()
@@ -429,7 +429,7 @@ public class Repository {
      */
     public void transfer(String newOwnerName, int[] teamIds) throws HttpErrorException{
         RequestBody body = RequestBody.create(String.format("{" +
-                "'new_owner': '%s'" +
+                "'new_owner': '%s'," +
                 "'team_ids': '%s'" +
                 "}", newOwnerName, Github.getMoshi().adapter(int[].class).toJson(teamIds)), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
         Request request = new Request.Builder()
@@ -453,7 +453,7 @@ public class Repository {
      */
     public void transfer(String newOwnerName) throws HttpErrorException{
         RequestBody body = RequestBody.create(String.format("{" +
-                "'new_owner': '%s'" +
+                "'new_owner': '%s'," +
                 "}", newOwnerName), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/transfer", owner.getName(), name))
@@ -698,20 +698,20 @@ public class Repository {
         public String json(){
             // build the json manually
             return String.format("{" +
-                    "'name':'%s'" +
-                    "'description': '%s'" +
-                    "'homepage': '%s'" +
-                    "'private': '%s'" +
-                    "'visibility': '%s'" +
-                    "'has_issues': '%s'" +
-                    "'has_projects': '%s'" +
-                    "'has_wiki': '%s'" +
-                    "'is_template': '%s'" +
-                    "'default branch': '%s'" +
-                    "'allow_squash_merge': '%s'" +
-                    "'allow_merge_commit': '%s'" +
-                    "'allow_rebase_merge': '%s'" +
-                    "'delete_branch_on_merge': '%s'" +
+                    "'name':'%s'," +
+                    "'description': '%s'," +
+                    "'homepage': '%s'," +
+                    "'private': '%s'," +
+                    "'visibility': '%s'," +
+                    "'has_issues': '%s'," +
+                    "'has_projects': '%s'," +
+                    "'has_wiki': '%s'," +
+                    "'is_template': '%s'," +
+                    "'default branch': '%s'," +
+                    "'allow_squash_merge': '%s'," +
+                    "'allow_merge_commit': '%s'," +
+                    "'allow_rebase_merge': '%s'," +
+                    "'delete_branch_on_merge': '%s'," +
                     "'archived': '%s'" +
                     "}",
                     name,
@@ -770,21 +770,21 @@ public class Repository {
          */
         public void build() throws HttpErrorException{
             String json = String.format("{" +
-                            "'name':'%s'" +
-                            "'description': '%s'" +
-                            "'homepage': '%s'" +
-                            "'private': '%s'" +
-                            "'visibility': '%s'" +
-                            "'has_issues': '%s'" +
-                            "'has_projects': '%s'" +
-                            "'has_wiki': '%s'" +
-                            "'is_template': '%s'" +
-                            "'auto_init': '%s'" +
-                            "'gitignore_template': '%s" +
-                            "'license_template': '%s'" +
-                            "'allow_squash_merge': '%s'" +
-                            "'allow_merge_commit': '%s'" +
-                            "'allow_rebase_merge': '%s'" +
+                            "'name':'%s'," +
+                            "'description': '%s'," +
+                            "'homepage': '%s'," +
+                            "'private': '%s'," +
+                            "'visibility': '%s'," +
+                            "'has_issues': '%s'," +
+                            "'has_projects': '%s'," +
+                            "'has_wiki': '%s'," +
+                            "'is_template': '%s'," +
+                            "'auto_init': '%s'," +
+                            "'gitignore_template': '%s'," +
+                            "'license_template': '%s'," +
+                            "'allow_squash_merge': '%s'," +
+                            "'allow_merge_commit': '%s'," +
+                            "'allow_rebase_merge': '%s'," +
                             "'delete_branch_on_merge': '%s'" +
                             "}",
                     name,
