@@ -17,12 +17,10 @@ Copyright 2020 weebkun
 package com.weebkun.auth;
 
 import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
 import com.weebkun.api.Github;
 import com.weebkun.api.MediaTypes;
 import com.weebkun.utils.HttpErrorException;
 import okhttp3.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -38,15 +36,9 @@ public class OAuth {
     static {
         // this gay shit finally works
         // all i have to do is build the client and reassign so the interceptor actually works
-        client = client.newBuilder().addInterceptor(new Interceptor() {
-            @NotNull
-            @Override
-            public Response intercept(@NotNull Chain chain) throws IOException {
-                return chain.proceed(chain.request().newBuilder()
-                .addHeader("accept", MediaTypes.JSON)
-                .build());
-            }
-        }).build();
+        client = client.newBuilder().addInterceptor(chain -> chain.proceed(chain.request().newBuilder()
+        .addHeader("accept", MediaTypes.JSON)
+        .build())).build();
     }
 
     /**

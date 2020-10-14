@@ -17,12 +17,10 @@ Copyright 2020 weebkun
 package com.weebkun.api;
 
 import com.google.gson.Gson;
-import com.squareup.moshi.JsonReader;
 import com.squareup.moshi.Moshi;
 import com.weebkun.auth.OAuth;
 import com.weebkun.utils.*;
 import okhttp3.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
