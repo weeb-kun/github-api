@@ -32,16 +32,23 @@ although we will provide a default user agent for you. "Java-github-api".<br>
 After authenticating and setting the user-agent,
 you can now proceed to do your api calls without worrying about the authentication headers.
 
+### Scopes
+
+for more info on the scopes available, check this page: [scopes.md](scopes.md)
+
 To see the available scopes and find out what you need, visit the github docs at
 https://docs.github.com/en/free-pro-team@latest/developers/apps/scopes-for-oauth-apps
 
-and check out the `com.weebkun.auth.Scopes` class.
+and check out the [com.weebkun.auth.Scopes](src/main/java/com/weebkun/auth/Scopes.java) class.
 
 ### Resources
 this section lists some resources you can manipulate.
 do take note that some calls require proper authentication.
 remember to check that you have the correct scopes.
 #### repositories
+
+Get a public repository with `Repository.get(owner, repoName)`.
+List the authenticated user's repositories with `Github.listUserRepos(params)`.
 
 - `static get(owner, name)`<br>
 get a repository by a given owner and name of the repo.
@@ -88,7 +95,45 @@ authenticated user must have explicit permission to create repos in the specifie
 - `Github.getAuthenticatedUser()`<br>
 returns the authenticated user object.
 
-for more methods and examples, visit the docs at https://javadoc.io/doc/com.github.weeb-kun/github-api/0.0.1/index.html.
+#### The Options object
+In certain methods, an Options parameter `params` will be expected,
+this is to configure the query params in the request.
+
+To configure the `Options` object, simply instantiate a new `Options` object and set the public fields.
+
+##### Fields
+- `visibility` - specify the visibility of the resource requested.
+- `affiliation` - specify the affiliation to the authenticated user.
+- `type` - specify the type of repository to get. cannot be used with `visibility` or `affiliation`.
+- `sort` - specify the field to sort by.
+- `direction` - specify the direction of sorting.
+- `perPage` - specify the number of results per page.
+- `page` - specify the current page to get.
+- `since` - specify to only get updates after this timestamp.
+- `before` - specify to only get updates before this timestamp.
+
+for more info, see the github docs at https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-repositories-for-the-authenticated-user.
+this specific api call accepts all the query params stated.
+
+#### Media Types
+The github api provides various media types and previews that require special accept headers.
+By default the `nebula-preview` and `mercy-preview` is used,
+but you can use whatever preview you like.
+
+These media types can be found at `com.weebkun.api.MediaTypes`.
+
+For more info on the api previews, visit https://docs.github.com/en/free-pro-team@latest/rest/overview/api-previews.
+
+For more methods and examples, visit the docs at https://javadoc.io/doc/com.github.weeb-kun/github-api/0.0.1/index.html.
+
+## Modifying the default http client
+This library uses Okhttp. if you want to configure your own client,
+use the Github.Builder class. use this class to configure custom interceptors and event listeners,
+but make sure you provide the proper headers. (`accept`, `authorization`, `user-agent`)
+
+To provide a custom client,
+create a new `Github.Builder` object, add the desired interceptors and event listeners,
+and then call `.build()`.
 
 ## Documentation
 docs can be found at https://javadoc.io/doc/com.github.weeb-kun/github-api/0.0.1/index.html.
