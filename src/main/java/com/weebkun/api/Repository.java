@@ -697,23 +697,23 @@ public class Repository {
          */
         public String json(){
             // build the json manually
-            return String.format("{" +
-                    "\"name\":\"%s\"," +
-                    "\"description\": \"%s\"," +
-                    "\"homepage\": \"%s\"," +
-                    "\"private\": \"%s\"," +
-                    "\"visibility\": \"%s\"," +
-                    "\"has_issues\": \"%s\"," +
-                    "\"has_projects\": \"%s\"," +
-                    "\"has_wiki\": \"%s\"," +
-                    "\"is_template\": \"%s\"," +
-                    "\"default branch\": \"%s\"," +
-                    "\"allow_squash_merge\": \"%s\"," +
-                    "\"allow_merge_commit\": \"%s\"," +
-                    "\"allow_rebase_merge\": \"%s\"," +
-                    "\"delete_branch_on_merge\": \"%s\"," +
-                    "\"archived\": \"%s\"" +
-                    "}",
+            return String.format("{"
+                    .concat(name != null ? "\"name\":\"%s\"," : "")
+                    .concat(description != null ? "\"description\": \"%s\"," : "")
+                    .concat(homepage != null ? "\"homepage\": \"%s\"," : "")
+                    .concat(isPrivate ? "\"private\": \"%s\"," : "")
+                    .concat(visibility != null ? "\"visibility\": \"%s\"," : "")
+                    .concat(hasIssues ? "\"has_issues\": \"%s\"," : "")
+                    .concat(hasProjects ? "\"has_projects\": \"%s\"," : "")
+                    .concat(hasWiki ? "\"has_wiki\": \"%s\"," : "")
+                    .concat(isTemplate ? "\"is_template\": \"%s\"," : "")
+                    .concat(defaultBranch != null ? "\"default_branch\": \"%s\n" : "")
+                    .concat(allowSquashMerge ? "\"allow_squash_merge\": \"%s\"," : "")
+                    .concat(allowMergeCommit ? "\"allow_merge_commit\": \"%s\"," : "")
+                    .concat(allowRebaseMerge ? "\"allow_rebase_merge\": \"%s\"," : "")
+                    .concat(deleteBranchOnMerge ? "\"delete_branch_on_merge\": \"%s\"" : "")
+                    .concat(archived ? "\"archived\": \"%s\"" : "")
+                    + "}",
                     name,
                     description,
                     homepage,
@@ -769,24 +769,24 @@ public class Repository {
          * @throws HttpErrorException if the create operation failed
          */
         public void build() throws HttpErrorException{
-            String json = String.format("{" +
-                            "\"name\":\"%s\"," +
-                            "\"description\": \"%s\"," +
-                            "\"homepage\": \"%s\"," +
-                            "\"private\": \"%s\"," +
-                            "\"visibility\": \"%s\"," +
-                            "\"has_issues\": \"%s\"," +
-                            "\"has_projects\": \"%s\"," +
-                            "\"has_wiki\": \"%s\"," +
-                            "\"is_template\": \"%s\"," +
-                            "\"auto_init\": \"%s\"," +
-                            "\"gitignore_template\": \"%s\"," +
-                            "\"license_template\": \"%s\"," +
-                            "\"allow_squash_merge\": \"%s\"," +
-                            "\"allow_merge_commit\": \"%s\"," +
-                            "\"allow_rebase_merge\": \"%s\"," +
-                            "\"delete_branch_on_merge\": \"%s\"" +
-                            "}",
+            String json = String.format("{"
+                    .concat(name != null ? "\"name\":\"%s\"," : "")
+                    .concat(description != null ? "\"description\": \"%s\"," : "")
+                    .concat(homepage != null ? "\"homepage\": \"%s\"," : "")
+                    .concat(isPrivate ? "\"private\": \"%s\"," : "")
+                    .concat(visibility != null ? "\"visibility\": \"%s\"," : "")
+                    .concat(hasIssues ? "\"has_issues\": \"%s\"," : "")
+                    .concat(hasProjects ? "\"has_projects\": \"%s\"," : "")
+                    .concat(hasWiki ? "\"has_wiki\": \"%s\"," : "")
+                    .concat(isTemplate ? "\"is_template\": \"%s\"," : "")
+                    .concat(autoInit ? "\"auto_init\": \"%s\"," : "")
+                    .concat(gitignoreTemplate != null ? "\"gitignore_template\": \"%s\"," : "")
+                    .concat(licenseTemplate != null ? "\"license_template\": \"%s\"," : "")
+                    .concat(allowSquashMerge ? "\"allow_squash_merge\": \"%s\"," : "")
+                    .concat(allowMergeCommit ? "\"allow_merge_commit\": \"%s\"," : "")
+                    .concat(allowRebaseMerge ? "\"allow_rebase_merge\": \"%s\"," : "")
+                    .concat(deleteBranchOnMerge ? "\"delete_branch_on_merge\": \"%s\"" : "")
+                     + "}",
                     name,
                     description,
                     homepage,
