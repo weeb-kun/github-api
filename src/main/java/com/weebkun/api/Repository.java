@@ -589,7 +589,7 @@ public class Repository {
     public Repository source;
 
     /**
-     * uitility class for updating a repository.
+     * utility class for updating a repository.
      * use this if you don't want to write the json string yourself.
      */
     public static final class UpdateRepo {
