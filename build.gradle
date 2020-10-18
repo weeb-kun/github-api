@@ -64,10 +64,12 @@ bintray {
     filesSpec {
         from("${buildDir}/libs") {
             include "*-${version}.jar.asc"
+            include "*-${version}-javadoc.jar.asc"
+            include "*-${version}-sources.jar.asc"
         }
         from("${buildDir}/publications/library") {
             include 'pom-default.xml.asc'
-            rename 'pom-default.xml.asc', "${project.name}-${project.version}.pom.asc"
+            rename 'pom-default.xml.asc', "github-api-${project.version}.pom.asc"
         }
         into "${project.group.replaceAll(/\./, '/')}/github-api/${project.version}"
     }
