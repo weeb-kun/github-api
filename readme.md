@@ -18,7 +18,6 @@ dependencies {
   <groupId>com.github.weeb-kun</groupId>
   <artifactId>github-api</artifactId>
   <version>$version</version>
-  <type>pom</type>
 </dependency>
 ```
 
