@@ -18,6 +18,7 @@ package com.weebkun.api;
 
 import com.google.gson.Gson;
 import com.squareup.moshi.Moshi;
+import com.weebkun.api.repo.Repository;
 import com.weebkun.auth.OAuth;
 import com.weebkun.utils.*;
 import okhttp3.*;

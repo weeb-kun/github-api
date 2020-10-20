@@ -19,3 +19,4 @@ gradlew.bat
 .idea
 token.txt
 bin
+out

@@ -14,17 +14,18 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.api.repo;
 
 import com.google.gson.annotations.SerializedName;
+import com.weebkun.api.*;
 import com.weebkun.utils.HttpErrorException;
 import com.weebkun.utils.UnauthorisedException;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.io.IOException;
+import javax.swing.text.html.HTML;
+import java.io.*;
+import java.util.Base64;
 
 /**
  * represents a repository in github.
@@ -259,6 +260,194 @@ public class Repository {
         repo.archived = this.archived;
         return repo;
     }
+
+    /**
+     * gets a file, symlink or submodule in this repo.
+     * @param path the forward-slash separated path of this content. do not include the first slash.
+     * @return the content
+     * @throws HttpErrorException if any error occurred during the retrieval operation. e.g. due to a wrong path or the content is not found.
+     */
+    public Content getContent(String path) throws HttpErrorException{
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/contents/%s", owner.getName(), name, path))
+                .build();
+        Content content = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            content = Github.getMoshi().adapter(Content.class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
+    /**
+     * gets all the contents in this repo.
+     * @return the array of contents.
+     * @throws HttpErrorException if any error occurred during the retrieval. e.g. wrong path
+     */
+    public Content[] getContents() throws HttpErrorException{
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/contents", owner.getName(), name))
+                .build();
+        Content[] contents = {};
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            contents = Github.getMoshi().adapter(Content[].class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return contents;
+    }
+
+    /**
+     * gets the contents in a specified directory.
+     * @param path the slash separated path of this directory
+     * @return the array of content in this directory
+     * @throws HttpErrorException if any error occurred during the retrieval. e.g. wrong path
+     */
+    public Content[] getDirectory(String path) throws HttpErrorException{
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/contents/%s", owner.getName(), name, path))
+                .build();
+        Content[] contents = {};
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            contents = Github.getMoshi().adapter(Content[].class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return contents;
+    }
+
+    /**
+     * gets a file in this repo.
+     * @param path the path to the file
+     * @return the file
+     */
+    public File getFile(String path) throws HttpErrorException{
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/contents/%s", owner.getName(), name, path))
+                .build();
+        File file = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            file = Github.getMoshi().adapter(File.class).fromJson(response.body().source());
+            file.owner = owner.getName();
+            file.repo = name;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+    /**
+     * gets the readme of this repo in html format.
+     * uses the default branch of master.
+     * @return the readme
+     */
+    public String getReadMe() {
+        return getReadMe("master");
+    }
+
+    /**
+     * gets the readme of this repo in html format at a specified commit/branch/tag.
+     * default: master. use {@link #getReadMe()} for the default branch.
+     * @param ref the ref of the commit/branch/tag
+     * @return the readme
+     * @throws HttpErrorException if the resource is not found or another error occurs.
+     * @see #getReadMe()
+     */
+    public String getReadMe(String ref) throws HttpErrorException{
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/readme?ref=%s", owner.getName(), name, ref))
+                .build();
+        // create new client to use html media type
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(chain -> chain.proceed(chain.request().newBuilder().addHeader("accept", MediaTypes.REPO_HTML).build()))
+                .build();
+        String html = null;
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            File file = Github.getMoshi().adapter(File.class).fromJson(response.body().source());
+            html = new String(Base64.getDecoder().decode(file.content));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return html;
+    }
+
+    /**
+     * gets the raw readme of this repo.
+     * @return the raw readme
+     */
+    public String getReadMeRaw() {
+        return getReadMeRaw("master");
+    }
+
+    /**
+     * gets the raw readme of this repo at a specified ref.
+     * @param ref the ref of the commit/branch/tag.
+     * @return the raw readme.
+     */
+    public String getReadMeRaw(String ref) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/readme?ref=%s", owner.getName(), name, ref))
+                .build();
+        // create new client to use raw media type
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(chain -> chain.proceed(chain.request().newBuilder().addHeader("accept", MediaTypes.REPO_RAW).build()))
+                .build();
+        String raw = null;
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            File file = Github.getMoshi().adapter(File.class).fromJson(response.body().source());
+            raw = new String(Base64.getDecoder().decode(file.content));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return raw;
+    }
+
+    /**
+     * creates a file in this repository.
+     * uses a default branch of master.
+     * @param path the path of the new file
+     * @param message the commit message. required
+     * @param file the {@code InputStream} of the content you want to create
+     * @throws IOException - if the file is unable to be encoded to base 64.
+     * @throws HttpErrorException if the create operation failed.
+     */
+    public void createFile(String path, String message, InputStream file) throws IOException, HttpErrorException{
+        createFile(path, message, file, "master");
+    }
+
+    /**
+     * creates a file in this repository.
+     * @param path the path of the new file
+     * @param message the commit message
+     * @param file the {@code InputStream} of the content you want to create
+     * @param branch the branch
+     * @throws IOException if the file cannot be encoded.
+     * @throws HttpErrorException if the create operation failed.
+     */
+    public void createFile(String path, String message, InputStream file, String branch) throws IOException, HttpErrorException{
+        String json = "{" +
+                String.format("\"message\": \"%s\"", message) +
+                String.format("\"content\": \"%s\"", Base64.getEncoder().encodeToString(file.readAllBytes())) +
+                String.format("\"branch\": \"%s\"", branch) +
+                "}";
+        RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/contents/%s", owner, name, path))
+                .put(body)
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 201) throw new HttpErrorException(response);
+        }
+    }
+
+    // todo implement tar and zip downloading
 
     /**
      * gets an array of contributors for this repository.

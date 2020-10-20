@@ -1,13 +1,12 @@
 package com.weebkun.api;
 
+import com.weebkun.api.repo.Repository;
 import com.weebkun.utils.HttpErrorException;
-import com.weebkun.utils.UnauthorisedException;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import javax.print.attribute.standard.PresentationDirection;
 import java.io.IOException;
 
 /**

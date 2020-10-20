@@ -16,6 +16,7 @@ Copyright 2020 weebkun
 
 package com.weebkun.api;
 
+import com.weebkun.api.repo.Repository;
 import okhttp3.Request;
 import okhttp3.Response;
 

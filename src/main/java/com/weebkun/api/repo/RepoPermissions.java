@@ -14,8 +14,11 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.api.repo;
 
+/**
+ * permissions granted to the user for this repo.
+ */
 public class RepoPermissions {
     public boolean pull;
     public boolean push;
