@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.github.weeb-kun'
-version '0.0.2'
+version '0.0.3'
 
 publishing {
     publications {
@@ -37,7 +37,7 @@ publishing {
             from components.java
             groupId 'com.github.weeb-kun'
             artifactId 'github-api'
-            version '0.0.2'
+            version '0.0.3'
         }
     }
 
@@ -79,8 +79,8 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/weeb-kun/github-api'
         version {
-            name = '0.0.2'
-            vcsTag = 'v0.0.2'
+            name = '0.0.3'
+            vcsTag = 'v0.0.3'
         }
     }
 }
