@@ -103,4 +103,5 @@ dependencies {
     implementation 'org.kamranzafar:jtar:2.3'
     implementation 'org.apache.commons:commons-compress:1.20'
     testImplementation 'junit:junit:4.12'
+    implementation 'com.github.weeb-kun:list-utils:1.1.0-alpha'
 }

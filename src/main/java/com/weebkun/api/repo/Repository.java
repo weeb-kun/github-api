@@ -19,6 +19,7 @@ package com.weebkun.api.repo;
 import com.google.gson.annotations.SerializedName;
 import com.weebkun.api.*;
 import com.weebkun.utils.HttpErrorException;
+import com.weebkun.utils.JsonParser;
 import com.weebkun.utils.UnauthorisedException;
 import okhttp3.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -26,6 +27,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import javax.swing.text.html.HTML;
 import java.io.*;
 import java.util.Base64;
+import java.util.HashMap;
 
 /**
  * represents a repository in github.
@@ -259,6 +261,97 @@ public class Repository {
         repo.deleteBranchOnMerge = this.delete_branch_on_merge;
         repo.archived = this.archived;
         return repo;
+    }
+
+    public Branch[] listBranches() {
+        return listBranches(0, 0);
+    }
+
+    public Branch[] listBranches(int page, int perPage) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches", owner.getName(), name)
+                        .concat(page != 0 ? String.format("?page=%d", page) : "")
+                        .concat(perPage != 0 ? String.format("&per_page=%d", perPage) : ""))
+                .build();
+        Branch[] branches = {};
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            branches = Github.getGson().fromJson(response.body().string(), Branch[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return branches;
+    }
+
+    public Branch[] listBranches(boolean isProtected) {
+        return listBranches(isProtected, 0, 0);
+    }
+
+    public Branch[] listBranches(boolean isProtected, int page, int perPage) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches", owner.getName(), name)
+                .concat(isProtected ? String.format("?protected=%s", isProtected) : "")
+                .concat(page != 0 ? String.format("&page=%d", page) : "")
+                .concat(perPage != 0 ? String.format("&per_page=%d", perPage) : ""))
+                .build();
+        Branch[] branches = {};
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            branches = Github.getGson().fromJson(response.body().string(), Branch[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return branches;
+    }
+
+    public Branch getBranch(String name) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s", owner.getName(), this.name, name))
+                .build();
+        Branch branch = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            branch = Github.getGson().fromJson(response.body().string(), Branch.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return branch;
+    }
+
+    /**
+     * gets the protection status of a branch.
+     * @param branch the name of the branch
+     * @return the branch's protection status
+     */
+    public Protection getBranchProtection(String branch) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection", owner.getName(), this.name, branch))
+                .build();
+        Protection protection = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            protection = Github.getGson().fromJson(response.body().string(), Protection.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return protection;
+    }
+
+    /**
+     * updates this repo's branch protection policies.
+     * @param branch the branch to update
+     * @param options the options obj specifying the protection policies to update. see {@link ProtectionOptions} for more info.
+     * @see ProtectionOptions
+     */
+    public void updateBranchProtection(String branch, ProtectionOptions options) {
+        RequestBody body = RequestBody.create(options.parse(), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection", owner.getName(), name, branch))
+                .put(body)
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

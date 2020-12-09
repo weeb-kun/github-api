@@ -16,6 +16,8 @@ Copyright 2020 weebkun
 
 package com.weebkun.api;
 
+import com.weebkun.api.repo.Commit;
+
 /**
  * represents a tag in a github repo.
  */
