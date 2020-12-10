@@ -11,7 +11,7 @@ public class Protection {
     public String url;
     public boolean enabled;
     public ProtectionStatusChecks required_status_checks;
-    public EnforceAdmin enforce_admins;
+    public EnforceAdmins enforce_admins;
     public RequiredPullRequestReviews required_pull_request_reviews;
     public Restrictions restrictions;
     public RequiredLinearHistory required_linear_history;
@@ -19,7 +19,12 @@ public class Protection {
     public AllowDeletions allow_deletions;
 }
 
-class EnforceAdmin {
+/**
+ * setting for including admins in the enforcement of the protection policies.
+ * if {@code enabled} is set to true, admins are also subject to the protection policies,
+ * else admins are ignored(i.e. not restricted).
+ */
+class EnforceAdmins {
     public String url;
     public boolean enabled;
 }

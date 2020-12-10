@@ -302,6 +302,11 @@ public class Repository {
         return branches;
     }
 
+    /**
+     * gets a branch from this repo.
+     * @param name the name of the branch
+     * @return the branch object
+     */
     public Branch getBranch(String name) {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s", owner.getName(), this.name, name))
@@ -310,48 +315,13 @@ public class Repository {
         try(Response response = Github.getClient().newCall(request).execute()) {
             if(response.code() != 200) throw new HttpErrorException(response);
             branch = Github.getGson().fromJson(response.body().string(), Branch.class);
+            // set the repo name and owner
+            branch.repo = this.name;
+            branch.owner = owner.getName();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return branch;
-    }
-
-    /**
-     * gets the protection status of a branch.
-     * @param branch the name of the branch
-     * @return the branch's protection status
-     */
-    public Protection getBranchProtection(String branch) {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection", owner.getName(), this.name, branch))
-                .build();
-        Protection protection = null;
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 200) throw new HttpErrorException(response);
-            protection = Github.getGson().fromJson(response.body().string(), Protection.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return protection;
-    }
-
-    /**
-     * updates this repo's branch protection policies.
-     * @param branch the branch to update
-     * @param options the options obj specifying the protection policies to update. see {@link ProtectionOptions} for more info.
-     * @see ProtectionOptions
-     */
-    public void updateBranchProtection(String branch, ProtectionOptions options) {
-        RequestBody body = RequestBody.create(options.parse(), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection", owner.getName(), name, branch))
-                .put(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 200) throw new HttpErrorException(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -773,7 +743,14 @@ public class Repository {
         return node_id;
     }
 
+    /**
+     * the name of this repo
+     */
     public String name;
+
+    /**
+     * the fully qualified name of this repo. format: owner/repo-name
+     */
     public String full_name;
     public Owner owner;
 

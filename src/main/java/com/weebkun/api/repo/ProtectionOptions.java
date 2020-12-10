@@ -2,7 +2,7 @@ package com.weebkun.api.repo;
 
 /**
  * used for updating the protection status of a branch.
- * set the public fields and pass to {@link Repository#updateBranchProtection(String, ProtectionOptions)} to update.
+ * set the public fields and pass to {@link Branch#updateProtection(ProtectionOptions)} to update.
  */
 public class ProtectionOptions {
     // todo do javadoc
