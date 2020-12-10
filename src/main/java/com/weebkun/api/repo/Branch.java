@@ -1,3 +1,19 @@
+/*
+Copyright 2020 weebkun
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
 package com.weebkun.api.repo;
 
 import com.google.gson.annotations.SerializedName;
@@ -80,7 +96,7 @@ public class Branch {
      * gets the current setting for admin enforcement for this protected branch.
      * @return the enforce admins setting
      */
-    public EnforceAdmins getAdminProtection() {
+    public EnforceAdmins isAdminEnforced() {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/enforce_admins", owner, repo, name))
                 .build();
@@ -92,5 +108,79 @@ public class Branch {
             e.printStackTrace();
         }
         return admin;
+    }
+
+    /**
+     * enforce the protection policies for admins
+     */
+    public void enforceAdmins() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/enforce_admins", owner, repo, name))
+                .post(RequestBody.create("", MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * do not enforce protection policies on admins
+     */
+    public void doNotEnforceAdmins() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/enforce_admins", owner, repo, name))
+                .delete()
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * checks if pull request reviews are required and the pull request review policies.
+     * use the luke cage preview media type to get back the {@code required_approving_review_count}.
+     * @return the pull request review object
+     */
+    public RequiredPullRequestReviews checkRequiredPullRequestReviewPolicy() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name))
+                .build();
+        RequiredPullRequestReviews protection = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            protection = Github.getMoshi().adapter(RequiredPullRequestReviews.class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return protection;
+    }
+
+    public void updatePullRequestReviewPolicy(ProtectionOptions.RequiredPullRequestReviews policy) {
+        RequestBody body = RequestBody.create(policy.parse(), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name))
+                .patch(body)
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removePullRequestReviewPolicy() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name))
+                .delete()
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

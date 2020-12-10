@@ -19,15 +19,11 @@ package com.weebkun.api.repo;
 import com.google.gson.annotations.SerializedName;
 import com.weebkun.api.*;
 import com.weebkun.utils.HttpErrorException;
-import com.weebkun.utils.JsonParser;
 import com.weebkun.utils.UnauthorisedException;
 import okhttp3.*;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
-import javax.swing.text.html.HTML;
 import java.io.*;
 import java.util.Base64;
-import java.util.HashMap;
 
 /**
  * represents a repository in github.
@@ -322,6 +318,58 @@ public class Repository {
             e.printStackTrace();
         }
         return branch;
+    }
+
+    /**
+     * checks if vulnerability alerts are enabled for this repo.
+     * the dorian preview media type is required to access this endpoint during the preview period.
+     * the authenticated user must have admin access.
+     * @return true if enabled, false otherwise. default: false
+     */
+    public boolean areDependencyAlertsEnabled() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name))
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            return response.code() == 204;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * enables dependency alerts for this repo.
+     * requires the dorian preview media type.
+     * the authenticated user must have admin access.
+     */
+    public void enableDependencyAlerts() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name))
+                .put(RequestBody.create("", MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * disables dependency alerts for this repo.
+     * requires the dorian preview media type.
+     * the authenticated user must have admin access.
+     */
+    public void disableDependencyAlerts() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name))
+                .delete()
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
