@@ -14,7 +14,7 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 /**
  * permissions granted to the user for this repo.

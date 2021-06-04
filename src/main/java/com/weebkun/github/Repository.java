@@ -14,10 +14,9 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 import com.google.gson.annotations.SerializedName;
-import com.weebkun.api.*;
 import com.weebkun.utils.HttpErrorException;
 import com.weebkun.utils.UnauthorisedException;
 import okhttp3.*;
@@ -37,6 +36,126 @@ public class Repository {
     private String node_id;
 
     /**
+     * get the id of this repository.
+     * @return the id
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * get the global node id of this repo.
+     * @return the node id
+     */
+    public String getNodeId() {
+        return node_id;
+    }
+
+    /**
+     * the name of this repo
+     */
+    public String name;
+
+    /**
+     * the fully qualified name of this repo. format: owner/repo-name
+     */
+    public String full_name;
+    public Owner owner;
+
+    @SerializedName("private")
+    public boolean is_private;
+
+    // this is super gay
+    public String html_url;
+    public String description;
+    public boolean fork;
+    public License license;
+    public Owner organization;
+    public String url;
+    public String forks_url;
+    public String keys_url;
+    public String collaborators_url;
+    public String teams_url;
+    public String hooks_url;
+    public String issue_events_url;
+    public String events_url;
+    public String assignees_url;
+    public String branches_url;
+    public String tags_url;
+    public String blobs_url;
+    public String git_tags_url;
+    public String git_refs_url;
+    public String trees_url;
+    public String statuses_url;
+    public String languages_url;
+    public String stargazers_url;
+    public String contributors_url;
+    public String subscribers_url;
+    public String subscription_url;
+    public String commits_url;
+    public String git_commits_url;
+    public String comments_url;
+    public String issue_comment_url;
+    public String contents_url;
+    public String compare_url;
+    public String merges_url;
+    public String archive_url;
+    public String downloads_url;
+    public String issues_url;
+    public String pulls_url;
+    public String milestones_url;
+    public String notifications_url;
+    public String labels_url;
+    public String releases_url;
+    public String deployments_url;
+    public String pushed_at;
+    public String created_at;
+    public String updated_at;
+    public String git_url;
+    public String ssh_url;
+    public String clone_url;
+    public String svn_url;
+    public String homepage;
+    public int size;
+    public int stargazers_count;
+    public int watchers_count;
+    public String language;
+    public boolean has_issues;
+    public boolean has_projects;
+    public boolean has_downloads;
+    public boolean has_wiki;
+    public boolean has_pages;
+    public int forks_count;
+    public String mirror_url;
+    public int open_issues_count;
+    public int forks;
+    public int open_issues;
+    public boolean is_template;
+    public String[] topics;
+    public int watchers;
+    public String default_branch;
+    public int network_count;
+    public int subscribers_count;
+    public boolean archived;
+    public boolean disabled;
+    public String visibility;
+    public RepoPermissions permissions;
+    public boolean allow_rebase_merge;
+    public Repository template_repository;
+    public String temp_clone_token;
+    public boolean allow_squash_merge;
+    public boolean delete_branch_on_merge;
+    public boolean allow_merge_commit;
+    /**
+     * the direct parent of this forked repo.
+     */
+    public Repository parent;
+    /**
+     * the ultimate root repo of this fork.
+     */
+    public Repository source;
+
+    /**
      * get a repository from github. {@code repo} scope required for private repositories.
      * @param owner the name of the owner
      * @param name the name of the repo
@@ -44,18 +163,8 @@ public class Repository {
      * @throws UnauthorisedException if the repository is private and you do not have access to it
      */
     public static Repository get(String owner, String name) throws UnauthorisedException{
-        // send request
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s", owner, name))
-                .build();
-        Repository repo = null;
-        try (Response response = Github.getClient().newCall(request).execute()){
-            if(response.code() != 200) throw new HttpErrorException(response);
-            repo = Github.getGson().fromJson(response.body().string(), Repository.class);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-        return repo;
+        // get network util obj and send a get request to get /repos/owner/name
+        return Github.getNetworkUtil().get(String.format("/repos/%s/%s", owner, name), Repository.class, true);
     }
 
     /**
@@ -67,16 +176,9 @@ public class Repository {
      */
     public static Repository[] getAllPublic(String since, int perPage, String visibility) {
         if(perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repositories?since=%s&per_page=%d&visibility=%s", since, perPage, visibility))
-                .build();
-        Repository[] repositories = {};
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            repositories = Github.getGson().fromJson(response.body().string(), Repository[].class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return repositories;
+        return Github.getNetworkUtil().get(
+                String.format("/repositories?since=%s&per_page=%d&visibility=%s", since, perPage, visibility),
+                Repository[].class, true);
     }
 
     /**
@@ -89,18 +191,7 @@ public class Repository {
      * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#update-a-repository">github</a> for more info on params
      */
     public static void update(String owner, String name, String json) throws UnauthorisedException{
-        RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s", owner, name))
-                .patch(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 200) throw new HttpErrorException(response);
-            Repository repo = Github.getGson().fromJson(response.body().string(), Repository.class);
-            System.out.printf("Repository %s successfully updated. Response:\nstatus: %s\n%s\n\n%s", repo.full_name, response.code() + " " + response.message(), response.headers(), response.body().string());
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+        Github.getNetworkUtil().patch(String.format("/repos/%s/%s", owner, name), json);
     }
 
     /**
@@ -397,7 +488,7 @@ public class Repository {
      * @return the array of contents.
      * @throws HttpErrorException if any error occurred during the retrieval. e.g. wrong path
      */
-    public Content[] getContents() throws HttpErrorException{
+    public Content[] getAllContent() throws HttpErrorException{
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/contents", owner.getName(), name))
                 .build();
@@ -506,7 +597,7 @@ public class Repository {
                 .url(Github.getRoot() + String.format("/repos/%s/%s/readme?ref=%s", owner.getName(), name, ref))
                 .build();
         // create new client to use raw media type
-        OkHttpClient client = new OkHttpClient.Builder()
+        OkHttpClient client = Github.getClient().newBuilder()
                 .addInterceptor(chain -> chain.proceed(chain.request().newBuilder().addHeader("accept", MediaTypes.REPO_RAW).build()))
                 .build();
         String raw = null;
@@ -752,19 +843,9 @@ public class Repository {
      * @see #transfer(String, int[])
      */
     public void transfer(String newOwnerName) throws HttpErrorException{
-        RequestBody body = RequestBody.create(String.format("{" +
+        Github.getNetworkUtil().post(String.format("/repos/%s/%s/transfer", owner.getName(), name), String.format("{" +
                 "\"new_owner\": \"%s\"" +
-                "}", newOwnerName), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/transfer", owner.getName(), name))
-                .post(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            // transfer not accepted
-            if(response.code() != 202) throw new HttpErrorException(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                "}", newOwnerName));
     }
 
     /**
@@ -774,126 +855,6 @@ public class Repository {
     public String toJson(){
         return Github.getGson().toJson(this, Repository.class);
     }
-
-    /**
-     * get the id of this repository.
-     * @return the id
-     */
-    public int getId() {
-        return id;
-    }
-
-    /**
-     * get the global node id of this repo.
-     * @return the node id
-     */
-    public String getNodeId() {
-        return node_id;
-    }
-
-    /**
-     * the name of this repo
-     */
-    public String name;
-
-    /**
-     * the fully qualified name of this repo. format: owner/repo-name
-     */
-    public String full_name;
-    public Owner owner;
-
-    @SerializedName("private")
-    public boolean is_private;
-
-    // this is super gay
-    public String html_url;
-    public String description;
-    public boolean fork;
-    public License license;
-    public Owner organization;
-    public String url;
-    public String forks_url;
-    public String keys_url;
-    public String collaborators_url;
-    public String teams_url;
-    public String hooks_url;
-    public String issue_events_url;
-    public String events_url;
-    public String assignees_url;
-    public String branches_url;
-    public String tags_url;
-    public String blobs_url;
-    public String git_tags_url;
-    public String git_refs_url;
-    public String trees_url;
-    public String statuses_url;
-    public String languages_url;
-    public String stargazers_url;
-    public String contributors_url;
-    public String subscribers_url;
-    public String subscription_url;
-    public String commits_url;
-    public String git_commits_url;
-    public String comments_url;
-    public String issue_comment_url;
-    public String contents_url;
-    public String compare_url;
-    public String merges_url;
-    public String archive_url;
-    public String downloads_url;
-    public String issues_url;
-    public String pulls_url;
-    public String milestones_url;
-    public String notifications_url;
-    public String labels_url;
-    public String releases_url;
-    public String deployments_url;
-    public String pushed_at;
-    public String created_at;
-    public String updated_at;
-    public String git_url;
-    public String ssh_url;
-    public String clone_url;
-    public String svn_url;
-    public String homepage;
-    public int size;
-    public int stargazers_count;
-    public int watchers_count;
-    public String language;
-    public boolean has_issues;
-    public boolean has_projects;
-    public boolean has_downloads;
-    public boolean has_wiki;
-    public boolean has_pages;
-    public int forks_count;
-    public String mirror_url;
-    public int open_issues_count;
-    public int forks;
-    public int open_issues;
-    public boolean is_template;
-    public String[] topics;
-    public int watchers;
-    public String default_branch;
-    public int network_count;
-    public int subscribers_count;
-    public boolean archived;
-    public boolean disabled;
-    public String visibility;
-    public RepoPermissions permissions;
-    public boolean allow_rebase_merge;
-    public Repository template_repository;
-    public String temp_clone_token;
-    public boolean allow_squash_merge;
-    public boolean delete_branch_on_merge;
-    public boolean allow_merge_commit;
-    /**
-     * the direct parent of this forked repo.
-     */
-    public Repository parent;
-    /**
-     * the ultimate root repo of this fork.
-     */
-    public Repository source;
 
     /**
      * utility class for updating a repository.
@@ -913,8 +874,14 @@ public class Repository {
         private boolean isTemplate = false;
         private String defaultBranch = "main";
         private boolean allowSquashMerge = true;
+
+        @SerializedName("allow_merge_commit")
         private boolean allowMergeCommit = true;
+
+        @SerializedName("allow_rebase_merge")
         private boolean allowRebaseMerge = true;
+
+        @SerializedName("delete_branch_on_merge")
         private boolean deleteBranchOnMerge = false;
         private boolean archived = false;
 
@@ -1043,7 +1010,7 @@ public class Repository {
          * @throws UnauthorisedException if the update operation failed
          */
         public void update() throws UnauthorisedException{
-                Repository.update(owner, name, json());
+                Repository.update(owner, name, Github.getGson().toJson(this));
         }
     }
 

@@ -1,4 +1,4 @@
-package com.weebkun.api;
+package com.weebkun.github;
 
 public class Plan {
     public String name;

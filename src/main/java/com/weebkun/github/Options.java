@@ -1,4 +1,4 @@
-package com.weebkun.api;
+package com.weebkun.github;
 
 import com.weebkun.utils.ParamConflictException;
 

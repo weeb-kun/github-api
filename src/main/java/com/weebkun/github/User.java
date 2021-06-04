@@ -14,9 +14,8 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.github;
 
-import com.weebkun.api.repo.Repository;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -91,16 +90,8 @@ public class User {
      * @return the array of repos
      */
     public Repository[] getRepos(String type, String sort, String direction, int perPage, int page) {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/users/%s/repos?type=%s&sort=%s&direction=%s&per_page=%d&page=%d", name, type, sort, direction, perPage, page))
-                .build();
-        Repository[] repositories = {};
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            repositories = Github.getGson().fromJson(response.body().string(), Repository[].class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return repositories;
+        return Github.getNetworkUtil().get(String.format("/users/%s/repos?type=%s&sort=%s&direction=%s&per_page=%d&page=%d", name, type, sort, direction, perPage, page),
+                Repository[].class, true);
     }
 
     // omg kms

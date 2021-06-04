@@ -17,8 +17,8 @@ Copyright 2020 weebkun
 package com.weebkun.auth;
 
 import com.squareup.moshi.JsonAdapter;
-import com.weebkun.api.Github;
-import com.weebkun.api.MediaTypes;
+import com.weebkun.github.Github;
+import com.weebkun.github.MediaTypes;
 import com.weebkun.utils.HttpErrorException;
 import okhttp3.*;
 

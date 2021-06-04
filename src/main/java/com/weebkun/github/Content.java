@@ -1,4 +1,4 @@
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 import javax.annotation.Nullable;
 

@@ -14,11 +14,9 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 import com.google.gson.annotations.SerializedName;
-import com.weebkun.api.Github;
-import com.weebkun.api.MediaTypes;
 import com.weebkun.utils.HttpErrorException;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -80,7 +78,7 @@ public class Branch {
      * removes this branch's protection.
      * after calling this method, this branch will no longer be protected.
      */
-    public void removeProtection() {
+    public void disableProtection() {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection", owner, repo, name))
                 .delete()
@@ -145,7 +143,7 @@ public class Branch {
      * use the luke cage preview media type to get back the {@code required_approving_review_count}.
      * @return the pull request review object
      */
-    public RequiredPullRequestReviews checkRequiredPullRequestReviewPolicy() {
+    public RequiredPullRequestReviews getRequiredPullRequestReviewPolicy() {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name))
                 .build();
@@ -172,7 +170,7 @@ public class Branch {
         }
     }
 
-    public void removePullRequestReviewPolicy() {
+    public void disablePullRequestReviewPolicy() {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name))
                 .delete()
@@ -182,5 +180,69 @@ public class Branch {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * checks if commit signatures are required.
+     * requires the zzzax preview media type.
+     * @return the commit signature policy
+     */
+    public RequireCommitSignatures getCommitSignaturePolicy() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_signatures", owner, repo, name))
+                .build();
+        RequireCommitSignatures required = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            required = Github.getMoshi().adapter(RequireCommitSignatures.class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return required;
+    }
+
+    /**
+     * sets the commit signature protection policy for this branch.
+     * requires admin access and the zzzax preview.
+     */
+    public void enableCommitSignaturePolicy() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_signatures", owner, repo, name))
+                .post(RequestBody.create("", MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * disables the commit signature protection policy for this branch.
+     */
+    public void disableCommitSignaturePolicy() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_signatures", owner, repo, name))
+                .delete()
+                .build();
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public RequiredStatusChecks getStatusCheckPolicy() {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_status_checks", owner, repo, name))
+                .build();
+        RequiredStatusChecks required = null;
+        try(Response response = Github.getClient().newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            required = Github.getMoshi().adapter(RequiredStatusChecks.class).fromJson(response.body().source());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return required;
     }
 }

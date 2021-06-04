@@ -14,20 +14,16 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 /**
- * represents a commit.
+ * represents a tag in a github repo.
  */
-public class Commit {
-    private String sha;
-    private String url;
+public class Tag {
+    private String node_id;
 
-    public String getSha() {
-        return sha;
-    }
-
-    public String getUrl() {
-        return url;
-    }
+    public String name;
+    public Commit commit;
+    public String zipball_url;
+    public String tarball_url;
 }

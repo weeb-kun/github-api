@@ -14,7 +14,7 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.github;
 
 import com.google.gson.annotations.SerializedName;
 

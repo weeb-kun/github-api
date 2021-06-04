@@ -14,23 +14,13 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.github;
 
-/**
- * represents a team in an organisation.
- */
-public class Team {
-    private int id;
-    private String node_id;
-
-    public String url;
-    public String html_url;
+public class License {
+    public String key;
     public String name;
-    public String slug;
-    public String description;
-    public String privacy;
-    public String permission;
-    public String members_url;
-    public String repositories_url;
-    public Team parent;
+    public String url;
+    public String spdx_id;
+    public String node_id;
+    public String html_url;
 }

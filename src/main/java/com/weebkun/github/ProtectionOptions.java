@@ -14,7 +14,7 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 /**
  * used for updating the protection status of a branch.

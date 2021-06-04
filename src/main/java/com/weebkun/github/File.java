@@ -1,7 +1,5 @@
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
-import com.weebkun.api.Github;
-import com.weebkun.api.MediaTypes;
 import com.weebkun.utils.HttpErrorException;
 import okhttp3.MediaType;
 import okhttp3.Request;

@@ -14,11 +14,10 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.github;
 
 import com.google.gson.Gson;
 import com.squareup.moshi.Moshi;
-import com.weebkun.api.repo.Repository;
 import com.weebkun.auth.OAuth;
 import com.weebkun.utils.*;
 import okhttp3.*;
@@ -37,6 +36,7 @@ public class Github {
     private static String USER_AGENT = "Java-github-api";
     private static final Gson GSON = new Gson();
     private static final Moshi moshi = new Moshi.Builder().build();
+    private static final Network networkUtil;
 
     public static final String gsonMediaType = "application/json; charset=utf-8";
 
@@ -47,16 +47,18 @@ public class Github {
                 .addHeader("accept", MediaTypes.MERCY_PREVIEW)
                 .addHeader("accept", MediaTypes.NEBULA_PREVIEW)
                 .addHeader("accept", MediaTypes.DORIAN_PREVIEW)
+                .addHeader("accept", MediaTypes.ZZZAX_PREVIEW)
                 .addHeader("user-agent", USER_AGENT)
                 .addHeader("authorization", String.format("%s %s", type == TokenType.OAUTH ? "token" : "basic", token))
                 .build())).build();
+        networkUtil = new Network(client);
     }
 
     /**
      * authenticates using oauth. requests authorisation from the user.
      * @param clientId the clientId of this application
      * @param scopes the scopes being requested
-     * @throws AlreadyAuthenticatedException if this app has already authenticated
+     * @throws AlreadyAuthenticatedException if this app has already been authenticated
      * @see OAuth#authenticate(String, String[]) 
      */
     public static void authenticate(String clientId, String[] scopes) throws AlreadyAuthenticatedException {
@@ -127,6 +129,10 @@ public class Github {
         return moshi;
     }
 
+    protected static Network getNetworkUtil() {
+        return networkUtil;
+    }
+
     /**
      * sets the user agent for all api requests.
      * @param agent the string denoting the user agent.
@@ -170,8 +176,7 @@ public class Github {
     public static Repository[] listUserRepos(Options params) throws ParamConflictException, HttpErrorException{
         if(params.perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         if(params.before != null && params.since != null) throw new ParamConflictException("since and before used together.");
-        Request request = new Request.Builder()
-                .url(ROOT + "/user/repos".concat(params.visibility != null ? String.format("?visibility=%s&", params.visibility) : "")
+        return networkUtil.get("/user/repos".concat(params.visibility != null ? String.format("?visibility=%s&", params.visibility) : "")
                 .concat(params.affiliation != null ? String.format("affiliation=%s&", params.affiliation) : "")
                 .concat(params.type != null ? String.format("type=%s&", params.type) : "")
                 .concat(params.sort != null ? String.format("sort=%s&", params.sort) : "")
@@ -179,19 +184,8 @@ public class Github {
                 .concat(params.perPage != 0 ? String.format("per_page=%d&", params.perPage) : "")
                 .concat(params.page != 0 ? String.format("page=%d&", params.page) : "")
                 .concat(params.since != null ? String.format("since=%s", params.since) : "")
-                .concat(params.since == null && params.before != null ? String.format("before=%s", params.before) : ""))
-                .build();
-        Repository[] repositories = {};
-        try(Response response = client.newCall(request).execute()) {
-            if(response.code() == 422) throw new ParamConflictException(String.format("error: type conflict: %s\n%s\n\n%s",
-                    response.code() + " " + response.message(), response.headers(), response.body()));
-            if(response.code() == 401) throw new UnauthorisedException(response);
-            if(response.code() != 200) throw new HttpErrorException(response);
-            repositories = GSON.fromJson(response.body().string(), Repository[].class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return repositories;
+                .concat(params.since == null && params.before != null ? String.format("before=%s", params.before) : ""),
+                Repository[].class, true);
     }
 
     /**

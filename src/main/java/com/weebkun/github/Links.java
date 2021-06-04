@@ -1,4 +1,4 @@
-package com.weebkun.api.repo;
+package com.weebkun.github;
 
 public class Links {
     public String git;

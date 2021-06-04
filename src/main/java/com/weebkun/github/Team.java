@@ -14,32 +14,23 @@ Copyright 2020 weebkun
    limitations under the License.
  */
 
-package com.weebkun.api;
+package com.weebkun.github;
 
 /**
- * represents a github app.
+ * represents a team in an organisation.
  */
-public class App {
-    public int id;
-    public String slug;
-    public String node_id;
-    public Owner owner;
-    public String name;
-    public String description;
-    public String external_url;
+public class Team {
+    private int id;
+    private String node_id;
+
+    public String url;
     public String html_url;
-    public String created_at;
-    public String updated_at;
-    public AppPermissions permissions;
-    public String[] events;
-}
-
-/**
- * specifies the app permissions.
- */
-class AppPermissions {
-    public String metadata;
-    public String contents;
-    public String issues;
-    public String single_file;
+    public String name;
+    public String slug;
+    public String description;
+    public String privacy;
+    public String permission;
+    public String members_url;
+    public String repositories_url;
+    public Team parent;
 }
