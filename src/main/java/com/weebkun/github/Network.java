@@ -1,6 +1,5 @@
 package com.weebkun.github;
 
-import com.google.gson.Gson;
 import com.squareup.moshi.Moshi;
 import com.weebkun.utils.HttpErrorException;
 import okhttp3.*;
@@ -10,7 +9,6 @@ import java.io.IOException;
 class Network {
 
     private final OkHttpClient client;
-    private final Gson gson = Github.getGson();
     private final Moshi moshi = Github.getMoshi();
 
     protected Network(OkHttpClient client) {
@@ -52,6 +50,18 @@ class Network {
                 .build();
         try(Response response = client.newCall(request).execute()) {
             if(response.code() != 201) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void put(String endPoint, String json) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + endPoint)
+                .put(RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
+                .build();
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
         } catch (IOException e) {
             e.printStackTrace();
         }

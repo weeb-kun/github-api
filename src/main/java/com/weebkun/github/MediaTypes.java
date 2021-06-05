@@ -22,6 +22,7 @@ package com.weebkun.github;
  * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/overview/media-types">github docs</a> for more info
  * check the X-GitHub-Media-Type header in the response for the media type.
  */
+// might convert this to enum
 public class MediaTypes {
 
     // use this for oauth routes as they are not part of the rest api and will respond with 406 not acceptable when using DEFAULT.

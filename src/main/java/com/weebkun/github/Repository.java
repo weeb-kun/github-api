@@ -16,7 +16,6 @@ Copyright 2020 weebkun
 
 package com.weebkun.github;
 
-import com.google.gson.annotations.SerializedName;
 import com.squareup.moshi.Json;
 import com.weebkun.utils.HttpErrorException;
 import com.weebkun.utils.UnauthorisedException;
@@ -62,8 +61,7 @@ public class Repository {
      */
     public String full_name;
     public Owner owner;
-
-    @SerializedName("private")
+    @Json(name = "private")
     public boolean is_private;
 
     // this is super gay
@@ -266,7 +264,8 @@ public class Repository {
     }
 
     /**
-     *
+     * updates this repository<br>
+     * the user must own this repo.
      */
     public void update(Builder newRepo){
         Github.getNetworkUtil().patch(String.format("/repos/%s/%s", this.owner.getName(), this.name),
@@ -279,15 +278,16 @@ public class Repository {
      * parses this repository into a json string and sends a PATCH request with the json in the body.
      * @throws HttpErrorException if the the update operation failed
      */
+    // might delete
     public void save() throws HttpErrorException{
-        RequestBody body = RequestBody.create(Github.getGson().toJson(this), MediaType.get("application/json; charset=utf-8"));
+        RequestBody body = RequestBody.create(Github.getMoshi().adapter(Repository.class).toJson(this), MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s", this.owner.getName(), this.name))
                 .patch(body)
                 .build();
         try (Response response = Github.getClient().newCall(request).execute()){
             if(response.code() != 200) throw new HttpErrorException(response);
-            Repository repo = Github.getGson().fromJson(response.body().string(), Repository.class);
+            Repository repo = Github.getMoshi().adapter(Repository.class).fromJson(response.body().string());
             System.out.printf("Repository %s successfully updated. Response:\nstatus: %s\n%s\n\n%s\n", repo.full_name, response.code() + " " + response.message(), response.headers(), response.body().string());
         } catch (IOException e) {
             e.printStackTrace();
@@ -322,7 +322,7 @@ public class Repository {
                 .build();
         Branch[] branches = {};
         try(Response response = Github.getClient().newCall(request).execute()) {
-            branches = Github.getGson().fromJson(response.body().string(), Branch[].class);
+            branches = Github.getMoshi().adapter(Branch[].class).fromJson(response.body().source());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -342,7 +342,7 @@ public class Repository {
                 .build();
         Branch[] branches = {};
         try(Response response = Github.getClient().newCall(request).execute()) {
-            branches = Github.getGson().fromJson(response.body().string(), Branch[].class);
+            branches = Github.getMoshi().adapter(Branch[].class).fromJson(response.body().source());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -361,7 +361,7 @@ public class Repository {
         Branch branch = null;
         try(Response response = Github.getClient().newCall(request).execute()) {
             if(response.code() != 200) throw new HttpErrorException(response);
-            branch = Github.getGson().fromJson(response.body().string(), Branch.class);
+            branch = Github.getMoshi().adapter(Branch.class).fromJson(response.body().source());
             // set the repo name and owner
             branch.repo = this.name;
             branch.owner = owner.getName();
@@ -390,36 +390,14 @@ public class Repository {
     }
 
     /**
-     * enables dependency alerts for this repo.
-     * requires the dorian preview media type.
-     * the authenticated user must have admin access.
+     * updates the dependency alerts
+     * @param enabled denotes whether to enable or disable the dependency alerts
      */
-    public void enableDependencyAlerts() {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name))
-                .put(RequestBody.create("", MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 204) throw new HttpErrorException(response);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * disables dependency alerts for this repo.
-     * requires the dorian preview media type.
-     * the authenticated user must have admin access.
-     */
-    public void disableDependencyAlerts() {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name))
-                .delete()
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 204) throw new HttpErrorException(response);
-        }catch (IOException e) {
-            e.printStackTrace();
+    public void updateDependencyAlerts(boolean enabled) {
+        if (enabled) {
+            Github.getNetworkUtil().put(String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name), "");
+        } else {
+            Github.getNetworkUtil().delete(String.format("/repos/%s/%s/vulnerability-alerts", owner.getName(), name));
         }
     }
 
@@ -670,7 +648,7 @@ public class Repository {
                 .build();
         Language languages = null;
         try(Response response = Github.getClient().newCall(request).execute()) {
-             languages = Github.getGson().fromJson(response.body().string(), Language.class);
+             languages = Github.getMoshi().adapter(Language.class).fromJson(response.body().source());
         }catch (IOException e) {
             e.printStackTrace();
         }
@@ -813,33 +791,33 @@ public class Repository {
      * @return the json
      */
     public String toJson(){
-        return Github.getGson().toJson(this, Repository.class);
+        return Github.getMoshi().adapter(Repository.class).toJson(this);
     }
 
     /**
      * common builder class for creating/updating repositories
      */
     public static class Builder {
-        private String name;
-        private String description;
-        private String homepage;
+        protected String name;
+        protected String description;
+        protected String homepage;
         @Json(name = "private")
-        private boolean isPrivate = false;
-        private String visibility = "public";
-        private boolean has_issues = true;
-        private boolean has_projects = true;
-        private boolean has_wiki = true;
-        private boolean has_downloads = true;
-        private boolean is_template = false;
-        private String default_branch;
-        private boolean allow_squash_merge = true;
-        private boolean allow_merge_commit = true;
-        private boolean allow_rebase_merge = true;
-        private boolean delete_branch_on_merge = false;
-        private boolean auto_init = false;
-        private String gitignore_template;
-        private String license_template;
-        private boolean archived;
+        protected boolean isPrivate = false;
+        protected String visibility = "public";
+        protected boolean has_issues = true;
+        protected boolean has_projects = true;
+        protected boolean has_wiki = true;
+        protected Boolean has_downloads = true;
+        protected boolean is_template = false;
+        protected String default_branch;
+        protected boolean allow_squash_merge = true;
+        protected boolean allow_merge_commit = true;
+        protected boolean allow_rebase_merge = true;
+        protected boolean delete_branch_on_merge = false;
+        protected boolean auto_init = false;
+        protected String gitignore_template;
+        protected String license_template;
+        protected Boolean archived;
 
         public Builder setName(String name){
             return this;
@@ -866,6 +844,56 @@ public class Repository {
             return this;
         }
 
+        public Builder setProjects(boolean hasProjects) {
+            return this;
+        }
 
+        public Builder setWiki(boolean hasWiki) {
+            return this;
+        }
+
+        public Builder setDownloads(Boolean hasDownloads) {
+            return this;
+        }
+
+        public Builder setTemplate(boolean isTemplate) {
+            return this;
+        }
+
+        public Builder setDefaultBranch(String branch) {
+            return this;
+        }
+
+        public Builder setSquashMerge(boolean squashMerge) {
+            return this;
+        }
+
+        public Builder setMergeCommit(boolean mergeCommit) {
+            return this;
+        }
+
+        public Builder setRebaseMerge(boolean rebaseMerge) {
+            return this;
+        }
+
+        public Builder setDeleteBranchOnMerge(boolean deleteBranchOnMerge) {
+            return this;
+        }
+
+        public Builder setAutoInit(boolean autoInit) {
+            return this;
+        }
+
+        public Builder setGitignoreTemplate(String gitignoreTemplate) {
+            return this;
+        }
+
+        public Builder setLicenseTemplate(String licenseTemplate) {
+            return this;
+        }
+
+        public Builder setArchived(Boolean archived) {
+            return this;
+        }
     }
 }

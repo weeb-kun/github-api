@@ -39,7 +39,7 @@ public class UpdateProtections {
      * @return the json string
      */
     // idk why i need to implement my own parser when i can just use gson or moshi but whatever. ill test it next time
-    // todo test parsing with gson/moshi
+    // todo test parsing with moshi
     public String parse() {
         return "{\"required_status_checks\":" + (required_status_checks != null ? required_status_checks.parse() : "null,") +
                 String.format("\"enforce_admins\":%s", enforce_admins) +

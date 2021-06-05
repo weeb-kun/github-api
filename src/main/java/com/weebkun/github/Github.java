@@ -36,8 +36,6 @@ public class Github {
     private static final Moshi moshi = new Moshi.Builder().build();
     private static final Network networkUtil;
 
-    public static final String gsonMediaType = "application/json; charset=utf-8";
-
     static {
         // default interceptor to add accept, user-agent and authorization headers to all requests
         client = client.newBuilder().addInterceptor(chain -> chain.proceed(chain.request().newBuilder()
@@ -178,8 +176,13 @@ public class Github {
                 Repository[].class);
     }
 
+    /**
+     * creates a repository for the authenticated user
+     * @param repo the new repository builder object.
+     */
     public static void createRepository(Repository.Builder repo) {
-        networkUtil.post("/user/repos", moshi.adapter(Repository.Builder.class).toJson(repo));
+        // set archived to null to exclude it from json
+        networkUtil.post("/user/repos", moshi.adapter(Repository.Builder.class).nonNull().toJson(repo.setArchived(null)));
     }
 
     /**
