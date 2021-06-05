@@ -581,7 +581,7 @@ public class Repository {
     public User[] getContributors(boolean includeAnonymous, int resultsPerPage, int page){
         if(resultsPerPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/contributors?anon=%s&per_page=%d&page=%d", owner.getName(), name, includeAnonymous, resultsPerPage, page))
+                .url(Github.getRoot() + )
                 .build();
         User[] contributorList = {};
         try(Response response = Github.getClient().newCall(request).execute()) {
@@ -589,7 +589,12 @@ public class Repository {
         }catch (IOException e) {
             e.printStackTrace();
         }
-        return contributorList;
+        return Github.getNetworkUtil().get(String.format("/repos/%s/%s/contributors?anon=%s&per_page=%d&page=%d",
+                owner.getName(),
+                name,
+                includeAnonymous,
+                resultsPerPage,
+                page), User[].class);
     }
 
     /**
@@ -598,15 +603,6 @@ public class Repository {
      * @return the array of contributors
      */
     public User[] getContributors(boolean includeAnonymous) {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s/contributors?anon=%s", owner.getName(), name, includeAnonymous))
-                .build();
-        User[] contributorList = {};
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            contributorList = Github.getMoshi().adapter(User[].class).fromJson(response.body().source());
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
         return Github.getNetworkUtil().get(String.format("/repos/%s/%s/contributors?anon=%s", owner.getName(), name, includeAnonymous),
                 User[].class);
     }

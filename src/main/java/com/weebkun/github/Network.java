@@ -23,7 +23,6 @@ class Network {
         T result;
         try(Response response = client.newCall(request).execute()) {
             if(response.code() != 200) throw new HttpErrorException(response);
-            // check if type requires gson parser
             result = moshi.adapter(type).fromJson(response.body().source());
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,8 +61,8 @@ class Network {
                 .patch(RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
                 .build();
         try(Response response = client.newCall(request).execute()) {
-            if(response.code() != 200) throw new HttpErrorException(response);
             if(response.code() == 403) throw new UnauthorisedException(response);
+            if(response.code() != 200) throw new HttpErrorException(response);
         } catch (IOException e) {
             e.printStackTrace();
         }
