@@ -32,19 +32,6 @@ class Network {
         return result;
     }
 
-    protected void patch(String endPoint, String json) {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + endPoint)
-                .patch(RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
-                .build();
-        try(Response response = client.newCall(request).execute()) {
-            if(response.code() != 200) throw new HttpErrorException(response);
-            if(response.code() == 403) throw new UnauthorisedException(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     protected void post(String endPoint, String json) {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + endPoint)
@@ -64,6 +51,19 @@ class Network {
                 .build();
         try(Response response = client.newCall(request).execute()) {
             if(response.code() != 204) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void patch(String endPoint, String json) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + endPoint)
+                .patch(RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
+                .build();
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() != 200) throw new HttpErrorException(response);
+            if(response.code() == 403) throw new UnauthorisedException(response);
         } catch (IOException e) {
             e.printStackTrace();
         }

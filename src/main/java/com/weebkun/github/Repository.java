@@ -180,6 +180,7 @@ public class Repository {
                 Repository[].class);
     }
 
+    // todo might consider removing the static methods
     /**
      * update a repository.
      * @param owner the owner of the repo
