@@ -159,6 +159,7 @@ public class Github {
      * @throws ParamConflictException see {@link Options} for more info
      * @throws UnauthorisedException if no user is currently authenticated
      * @throws HttpErrorException if any other http error was received
+     * @throws IndexOutOfBoundsException if params.perPage exceeds 100
      * @see Options for the properties you can configure
      */
     public static Repository[] listUserRepos(Options params) throws ParamConflictException, HttpErrorException{
@@ -178,11 +179,11 @@ public class Github {
 
     /**
      * creates a repository for the authenticated user
-     * @param repo the new repository builder object.
+     * @param repo the new repository adapter object
      */
-    public static void createRepository(Repository.Builder repo) {
+    public static void createRepository(Repository.Adapter repo) {
         // set archived to null to exclude it from json
-        networkUtil.post("/user/repos", moshi.adapter(Repository.Builder.class).nonNull().toJson(repo.setArchived(null)));
+        networkUtil.post("/user/repos", moshi.adapter(Repository.Adapter.class).nonNull().toJson(repo.setArchived(null)));
     }
 
     /**

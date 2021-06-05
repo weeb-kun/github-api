@@ -27,6 +27,8 @@ class Network {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        } catch (NullPointerException e) {
+            return null;
         }
         return result;
     }

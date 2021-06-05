@@ -99,11 +99,11 @@ public class Organisation {
      * creates a repository in a specified organisation.
      * the authenticated user must have access to this organisation and be able to create repositories in that organisation.
      *
-     * use {@link RepositoryBuilder} instead if you dont want to specify the json yourself.
+     * use {@link RepositoryAdapter} instead if you dont want to specify the json yourself.
      * @param org the name of the organisation
      * @param json the json string
      * @throws HttpErrorException if the user cannot create repositories in the specified organisation or another error occurred
-     * @see RepositoryBuilder
+     * @see RepositoryAdapter
      */
     public static void createRepository(String org, String json) throws HttpErrorException {
         RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
@@ -120,10 +120,10 @@ public class Organisation {
 
     /**
      * creates a repository in this organisation.
-     * use {@link RepositoryBuilder} if you do not want to specify the json yourself.
+     * use {@link RepositoryAdapter} if you do not want to specify the json yourself.
      * @param json the json string
      * @throws HttpErrorException if an error was received
-     * @see RepositoryBuilder
+     * @see RepositoryAdapter
      */
     public void createRepo(String json) throws HttpErrorException{
         RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
@@ -142,7 +142,7 @@ public class Organisation {
      * meant for creating a repository in an organisation. the authenticated user must be a member of that organisation.
      * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-an-organization-repository">the github docs</a> for more info
      */
-    public static final class RepositoryBuilder extends Repository.Builder {
+    public static final class RepositoryAdapter extends Repository.Adapter {
         // post /orgs/{org}/repos
 
         /**

@@ -158,7 +158,7 @@ public class Repository {
      * get a repository from github. {@code repo} scope required for private repositories.
      * @param owner the name of the owner
      * @param name the name of the repo
-     * @return a desired repository
+     * @return a desired repository. may be null.
      * @throws UnauthorisedException if the repository is private and you do not have access to it
      */
     public static Repository get(String owner, String name) throws UnauthorisedException{
@@ -216,7 +216,7 @@ public class Repository {
 
     /**
      * creates a repository for the authenticated user.
-     * use {@link Builder} if you don't want to build the json string yourself.
+     * use {@link Adapter} if you don't want to build the json string yourself.
      * @param json the json string
      * @throws HttpErrorException if the create operation failed
      */
@@ -265,17 +265,6 @@ public class Repository {
     }
 
     /**
-     * updates this repository<br>
-     * the user must own this repo, else an {@link UnauthorisedException} will be thrown.
-     * @param newRepo the updated repository builder object.
-     */
-    public void update(Builder newRepo) throws UnauthorisedException{
-        // ignore gitignore and license template
-        Github.getNetworkUtil().patch(String.format("/repos/%s/%s", this.owner.getName(), this.name),
-                Github.getMoshi().adapter(Builder.class).nonNull().toJson(newRepo.setGitignoreTemplate(null).setLicenseTemplate(null)));
-    }
-
-    /**
      * deletes this repository.
      * @throws UnauthorisedException if the user does not have access to the repository
      */
@@ -289,6 +278,25 @@ public class Repository {
         }catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Adapter adapter() {
+        return new Adapter(owner.getName()).setName(name)
+                .setDescription(description)
+                .setHomepage(homepage)
+                .setPrivate(is_private)
+                .setVisibility(visibility)
+                .setIssues(has_issues)
+                .setProjects(has_projects)
+                .setWiki(has_wiki)
+                .setDownloads(has_downloads)
+                .setTemplate(is_template)
+                .setDefaultBranch(default_branch)
+                .setSquashMerge(allow_squash_merge)
+                .setMergeCommit(allow_merge_commit)
+                .setRebaseMerge(allow_rebase_merge)
+                .setDeleteBranchOnMerge(delete_branch_on_merge)
+                .setArchived(archived);
     }
 
     public Branch[] listBranches() {
@@ -579,16 +587,6 @@ public class Repository {
      * @return the array of contributors
      */
     public User[] getContributors(boolean includeAnonymous, int resultsPerPage, int page){
-        if(resultsPerPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + )
-                .build();
-        User[] contributorList = {};
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            contributorList = Github.getMoshi().adapter(User[].class).fromJson(response.body().source());
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
         return Github.getNetworkUtil().get(String.format("/repos/%s/%s/contributors?anon=%s&per_page=%d&page=%d",
                 owner.getName(),
                 name,
@@ -772,9 +770,11 @@ public class Repository {
     }
 
     /**
-     * common builder class for creating/updating repositories
+     * adapter for creating/updating repositories
+     * chain the setters to set the values.
      */
-    public static class Builder {
+    public static class Adapter {
+        private transient String owner;
         protected String name;
         protected String description;
         protected String homepage;
@@ -785,7 +785,7 @@ public class Repository {
         protected boolean has_projects = true;
         protected boolean has_wiki = true;
         protected Boolean has_downloads = true;
-        protected boolean is_template = false;
+        protected boolean is_template;
         protected String default_branch;
         protected boolean allow_squash_merge = true;
         protected boolean allow_merge_commit = true;
@@ -796,81 +796,113 @@ public class Repository {
         protected String license_template;
         protected Boolean archived;
 
-        public Builder setName(String name){
+        protected Adapter(String owner) {
+            this.owner = owner;
+        }
+
+        public Adapter setName(String name){
+            this.name = name;
             return this;
         }
 
-        public Builder setDescription(String description) {
+        public Adapter setDescription(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder setHomepage(String homepage) {
+        public Adapter setHomepage(String homepage) {
+            this.homepage = homepage;
             return this;
         }
 
-        public Builder setPrivate(boolean isPrivate) {
+        public Adapter setPrivate(boolean isPrivate) {
+            this.isPrivate = isPrivate;
             return this;
         }
 
-        public Builder setVisibility(String visibility) {
+        public Adapter setVisibility(String visibility) {
+            this.visibility = visibility;
             return this;
         }
 
-        public Builder setIssues(boolean hasIssues) {
-
+        public Adapter setIssues(boolean hasIssues) {
+            this.has_issues = hasIssues;
             return this;
         }
 
-        public Builder setProjects(boolean hasProjects) {
+        public Adapter setProjects(boolean hasProjects) {
+            this.has_projects = hasProjects;
             return this;
         }
 
-        public Builder setWiki(boolean hasWiki) {
+        public Adapter setWiki(boolean hasWiki) {
+            this.has_wiki = hasWiki;
             return this;
         }
 
-        public Builder setDownloads(Boolean hasDownloads) {
+        public Adapter setDownloads(Boolean hasDownloads) {
+            this.has_downloads = hasDownloads;
             return this;
         }
 
-        public Builder setTemplate(boolean isTemplate) {
+        public Adapter setTemplate(boolean isTemplate) {
+            this.is_template = isTemplate;
             return this;
         }
 
-        public Builder setDefaultBranch(String branch) {
+        public Adapter setDefaultBranch(String branch) {
+            this.default_branch = branch;
             return this;
         }
 
-        public Builder setSquashMerge(boolean squashMerge) {
+        public Adapter setSquashMerge(boolean squashMerge) {
+            this.allow_squash_merge = squashMerge;
             return this;
         }
 
-        public Builder setMergeCommit(boolean mergeCommit) {
+        public Adapter setMergeCommit(boolean mergeCommit) {
+            this.allow_merge_commit = mergeCommit;
             return this;
         }
 
-        public Builder setRebaseMerge(boolean rebaseMerge) {
+        public Adapter setRebaseMerge(boolean rebaseMerge) {
+            this.allow_rebase_merge = rebaseMerge;
             return this;
         }
 
-        public Builder setDeleteBranchOnMerge(boolean deleteBranchOnMerge) {
+        public Adapter setDeleteBranchOnMerge(boolean deleteBranchOnMerge) {
+            this.delete_branch_on_merge = deleteBranchOnMerge;
             return this;
         }
 
-        public Builder setAutoInit(boolean autoInit) {
+        public Adapter setAutoInit(boolean autoInit) {
+            this.auto_init = autoInit;
             return this;
         }
 
-        public Builder setGitignoreTemplate(String gitignoreTemplate) {
+        public Adapter setGitignoreTemplate(String gitignoreTemplate) {
+            this.gitignore_template = gitignoreTemplate;
             return this;
         }
 
-        public Builder setLicenseTemplate(String licenseTemplate) {
+        public Adapter setLicenseTemplate(String licenseTemplate) {
+            this.license_template = licenseTemplate;
             return this;
         }
 
-        public Builder setArchived(Boolean archived) {
+        public Adapter setArchived(Boolean archived) {
+            this.archived = archived;
             return this;
+        }
+
+        /**
+         * updates this repository<br>
+         * the user must own this repo, else an {@link UnauthorisedException} will be thrown.
+         */
+        public void update() {
+            // ignore gitignore and license template
+            Github.getNetworkUtil().patch(String.format("/repos/%s/%s", this.owner, this.name),
+                    Github.getMoshi().adapter(Adapter.class).nonNull().toJson(this.setGitignoreTemplate(null).setLicenseTemplate(null)));
         }
     }
 }
