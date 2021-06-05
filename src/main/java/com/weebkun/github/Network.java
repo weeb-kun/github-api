@@ -2,6 +2,7 @@ package com.weebkun.github;
 
 import com.squareup.moshi.Moshi;
 import com.weebkun.utils.HttpErrorException;
+import com.weebkun.utils.UnauthorisedException;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ class Network {
                 .build();
         try(Response response = client.newCall(request).execute()) {
             if(response.code() != 200) throw new HttpErrorException(response);
+            if(response.code() == 403) throw new UnauthorisedException(response);
         } catch (IOException e) {
             e.printStackTrace();
         }

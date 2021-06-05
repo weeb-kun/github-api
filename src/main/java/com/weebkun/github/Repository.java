@@ -265,33 +265,13 @@ public class Repository {
 
     /**
      * updates this repository<br>
-     * the user must own this repo.
+     * the user must own this repo, else an {@link UnauthorisedException} will be thrown.
+     * @param newRepo the updated repository builder object.
      */
-    public void update(Builder newRepo){
+    public void update(Builder newRepo) throws UnauthorisedException{
+        // ignore gitignore and license template
         Github.getNetworkUtil().patch(String.format("/repos/%s/%s", this.owner.getName(), this.name),
-                Github.getMoshi().adapter(Builder.class).toJson(newRepo));
-    }
-
-    /**
-     * updates this repository when any of its fields are updated.
-     *
-     * parses this repository into a json string and sends a PATCH request with the json in the body.
-     * @throws HttpErrorException if the the update operation failed
-     */
-    // might delete
-    public void save() throws HttpErrorException{
-        RequestBody body = RequestBody.create(Github.getMoshi().adapter(Repository.class).toJson(this), MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s", this.owner.getName(), this.name))
-                .patch(body)
-                .build();
-        try (Response response = Github.getClient().newCall(request).execute()){
-            if(response.code() != 200) throw new HttpErrorException(response);
-            Repository repo = Github.getMoshi().adapter(Repository.class).fromJson(response.body().string());
-            System.out.printf("Repository %s successfully updated. Response:\nstatus: %s\n%s\n\n%s\n", repo.full_name, response.code() + " " + response.message(), response.headers(), response.body().string());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                Github.getMoshi().adapter(Builder.class).nonNull().toJson(newRepo.setGitignoreTemplate(null).setLicenseTemplate(null)));
     }
 
     /**
