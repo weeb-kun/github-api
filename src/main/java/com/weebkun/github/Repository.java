@@ -17,6 +17,7 @@ Copyright 2020 weebkun
 package com.weebkun.github;
 
 import com.google.gson.annotations.SerializedName;
+import com.squareup.moshi.Json;
 import com.weebkun.utils.HttpErrorException;
 import com.weebkun.utils.UnauthorisedException;
 import okhttp3.*;
@@ -164,7 +165,7 @@ public class Repository {
      */
     public static Repository get(String owner, String name) throws UnauthorisedException{
         // get network util obj and send a get request to get /repos/owner/name
-        return Github.getNetworkUtil().get(String.format("/repos/%s/%s", owner, name), Repository.class, true);
+        return Github.getNetworkUtil().get(String.format("/repos/%s/%s", owner, name), Repository.class);
     }
 
     /**
@@ -178,7 +179,7 @@ public class Repository {
         if(perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
         return Github.getNetworkUtil().get(
                 String.format("/repositories?since=%s&per_page=%d&visibility=%s", since, perPage, visibility),
-                Repository[].class, true);
+                Repository[].class);
     }
 
     /**
@@ -265,24 +266,11 @@ public class Repository {
     }
 
     /**
-     * update this repo.
-     * @param json the json string
-     * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#update-a-repository">github</a> for more info on params
-     * @throws HttpErrorException if there was an error trying to update this repo
+     *
      */
-    public void update(String json) throws HttpErrorException{
-        RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s", this.owner.getName(), this.name))
-                .patch(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 200) throw new HttpErrorException(response);
-            Repository updatedRepo = Github.getGson().fromJson(response.body().string(), Repository.class);
-            System.out.printf("Repository %s successfully updated. Response:\nstatus: %s\n%s\n\n%s\n", updatedRepo.full_name, response.code() + " " + response.message(), response.headers(), response.body().string());
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void update(Builder newRepo){
+        Github.getNetworkUtil().patch(String.format("/repos/%s/%s", this.owner.getName(), this.name),
+                Github.getMoshi().adapter(Builder.class).toJson(newRepo));
     }
 
     /**
@@ -320,34 +308,6 @@ public class Repository {
         }catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * returns an {@code UpdateRepo} object for updating this repository. provides some chained methods to easily update this repo.
-     * use this of you are lazy to build the json string yourself.
-     * @return the UpdateRepo object
-     */
-    public UpdateRepo update(){
-        // create new UpdateRepo and initialise all fields.
-        // this eases the updating process so the user does not have to call so many methods.
-        UpdateRepo repo = new UpdateRepo();
-        repo.name = this.name;
-        repo.owner = this.owner.getName();
-        repo.description = this.description;
-        repo.homepage = homepage;
-        repo.isPrivate = this.is_private;
-        repo.visibility = this.visibility;
-        repo.hasIssues = this.has_issues;
-        repo.hasProjects = this.has_projects;
-        repo.hasWiki = this.has_wiki;
-        repo.isTemplate = this.is_template;
-        repo.defaultBranch = this.default_branch;
-        repo.allowSquashMerge = this.allow_squash_merge;
-        repo.allowMergeCommit = this.allow_merge_commit;
-        repo.allowRebaseMerge = this.allow_rebase_merge;
-        repo.deleteBranchOnMerge = this.delete_branch_on_merge;
-        repo.archived = this.archived;
-        return repo;
     }
 
     public Branch[] listBranches() {
@@ -688,12 +648,12 @@ public class Repository {
         }catch (IOException e) {
             e.printStackTrace();
         }
-        return contributorList;
+        return Github.getNetworkUtil().get(String.format("/repos/%s/%s/contributors?anon=%s", owner.getName(), name, includeAnonymous),
+                User[].class);
     }
 
     /**
-     * lists the contributors for this repo.
-     * uses default value of includeAnonymous = true.
+     * lists the contributors for this repo, including anonymous contributors.
      * @return the list of contributors including anonymous ones.
      */
     public User[] getContributors() {
@@ -857,227 +817,55 @@ public class Repository {
     }
 
     /**
-     * utility class for updating a repository.
-     * use this if you don't want to write the json string yourself.
+     * common builder class for creating/updating repositories
      */
-    public static final class UpdateRepo {
-
-        private String owner;
+    public static class Builder {
         private String name;
         private String description;
         private String homepage;
+        @Json(name = "private")
         private boolean isPrivate = false;
         private String visibility = "public";
-        private boolean hasIssues = true;
-        private boolean hasProjects = true;
-        private boolean hasWiki = true;
-        private boolean isTemplate = false;
-        private String defaultBranch = "main";
-        private boolean allowSquashMerge = true;
+        private boolean has_issues = true;
+        private boolean has_projects = true;
+        private boolean has_wiki = true;
+        private boolean has_downloads = true;
+        private boolean is_template = false;
+        private String default_branch;
+        private boolean allow_squash_merge = true;
+        private boolean allow_merge_commit = true;
+        private boolean allow_rebase_merge = true;
+        private boolean delete_branch_on_merge = false;
+        private boolean auto_init = false;
+        private String gitignore_template;
+        private String license_template;
+        private boolean archived;
 
-        @SerializedName("allow_merge_commit")
-        private boolean allowMergeCommit = true;
-
-        @SerializedName("allow_rebase_merge")
-        private boolean allowRebaseMerge = true;
-
-        @SerializedName("delete_branch_on_merge")
-        private boolean deleteBranchOnMerge = false;
-        private boolean archived = false;
-
-        public UpdateRepo setOwner(String owner){
-            this.owner = owner;
+        public Builder setName(String name){
             return this;
         }
 
-        public UpdateRepo setName(String name){
-            this.name = name;
+        public Builder setDescription(String description) {
             return this;
         }
 
-        public UpdateRepo setDescription(String description){
-            this.description = description;
+        public Builder setHomepage(String homepage) {
             return this;
         }
 
-        public UpdateRepo setHomepage(String url){
-            this.homepage = url;
+        public Builder setPrivate(boolean isPrivate) {
             return this;
         }
 
-        public UpdateRepo isPrivate(boolean isPrivate){
-            this.isPrivate = isPrivate;
+        public Builder setVisibility(String visibility) {
             return this;
         }
 
-        public UpdateRepo setVisibility(String visibility){
-            this.visibility = visibility;
+        public Builder setIssues(boolean hasIssues) {
+
             return this;
         }
 
-        public UpdateRepo hasIssues(boolean hasIssues){
-            this.hasIssues = hasIssues;
-            return this;
-        }
 
-        public UpdateRepo hasProjects(boolean hasProjects){
-            this.hasProjects = hasProjects;
-            return this;
-        }
-
-        public UpdateRepo hasWiki(boolean hasWiki){
-            this.hasWiki = hasWiki;
-            return this;
-        }
-
-        public UpdateRepo isTemplate(boolean isTemplate){
-            this.isTemplate = isTemplate;
-            return this;
-        }
-
-        public UpdateRepo setDefaultBranch(String branch){
-            this.defaultBranch = branch;
-            return this;
-        }
-
-        public UpdateRepo allowSquashMerge(boolean allow){
-            this.allowSquashMerge = allow;
-            return this;
-        }
-
-        public UpdateRepo allowMergeCommit(boolean allow){
-            this.allowMergeCommit = allow;
-            return this;
-        }
-
-        public UpdateRepo allowRebaseMerge(boolean allow){
-            this.allowRebaseMerge = allow;
-            return this;
-        }
-
-        public UpdateRepo deleteBranchOnMerge(boolean delete){
-            this.deleteBranchOnMerge = delete;
-            return this;
-        }
-
-        public UpdateRepo archived(boolean archive){
-            this.archived = archive;
-            return this;
-        }
-
-        /**
-         * build the json string for updating this repo.
-         * @return the json string
-         */
-        public String json(){
-            // build the json manually
-            return String.format("{"
-                    .concat(name != null ? "\"name\":\"%s\"," : "")
-                    .concat(description != null ? "\"description\": \"%s\"," : "")
-                    .concat(homepage != null ? "\"homepage\": \"%s\"," : "")
-                    .concat(isPrivate ? "\"private\": \"%s\"," : "")
-                    .concat(visibility != null ? "\"visibility\": \"%s\"," : "")
-                    .concat(hasIssues ? "\"has_issues\": \"%s\"," : "")
-                    .concat(hasProjects ? "\"has_projects\": \"%s\"," : "")
-                    .concat(hasWiki ? "\"has_wiki\": \"%s\"," : "")
-                    .concat(isTemplate ? "\"is_template\": \"%s\"," : "")
-                    .concat(defaultBranch != null ? "\"default_branch\": \"%s\n" : "")
-                    .concat(allowSquashMerge ? "\"allow_squash_merge\": \"%s\"," : "")
-                    .concat(allowMergeCommit ? "\"allow_merge_commit\": \"%s\"," : "")
-                    .concat(allowRebaseMerge ? "\"allow_rebase_merge\": \"%s\"," : "")
-                    .concat(deleteBranchOnMerge ? "\"delete_branch_on_merge\": \"%s\"" : "")
-                    .concat(archived ? "\"archived\": \"%s\"" : "")
-                    + "}",
-                    name,
-                    description,
-                    homepage,
-                    isPrivate,
-                    visibility,
-                    hasIssues,
-                    hasProjects,
-                    hasWiki,
-                    isTemplate,
-                    defaultBranch,
-                    allowSquashMerge,
-                    allowMergeCommit,
-                    allowRebaseMerge,
-                    deleteBranchOnMerge,
-                    archived);
-        }
-
-        /**
-         * updates a repository in github with the specified fields.
-         * @throws UnauthorisedException if the update operation failed
-         */
-        public void update() throws UnauthorisedException{
-                Repository.update(owner, name, Github.getGson().toJson(this));
-        }
-    }
-
-    /**
-     * builder class for creating repositories.
-     * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-an-organization-repository">the github docs</a> for the params. ignore {@code org} and {@code team_id} as those are for organisations.
-     */
-    public static class Builder {
-        // post /user/repos
-
-        public String name;
-        public String description;
-        public String homepage;
-        public boolean isPrivate;
-        public String visibility = "public";
-        public boolean hasIssues = true;
-        public boolean hasProjects = true;
-        public boolean hasWiki = true;
-        public boolean isTemplate = false;
-        public boolean allowSquashMerge = true;
-        public boolean allowMergeCommit = true;
-        public boolean allowRebaseMerge = true;
-        public boolean deleteBranchOnMerge = false;
-        public boolean autoInit = false;
-        public String gitignoreTemplate;
-        public String licenseTemplate;
-
-        /**
-         * sends a post request to github requesting to create this repository.
-         * @throws HttpErrorException if the create operation failed
-         */
-        public void build() throws HttpErrorException{
-            String json = String.format("{"
-                    .concat(name != null ? "\"name\":\"%s\"," : "")
-                    .concat(description != null ? "\"description\": \"%s\"," : "")
-                    .concat(homepage != null ? "\"homepage\": \"%s\"," : "")
-                    .concat(isPrivate ? "\"private\": \"%s\"," : "")
-                    .concat(visibility != null ? "\"visibility\": \"%s\"," : "")
-                    .concat(hasIssues ? "\"has_issues\": \"%s\"," : "")
-                    .concat(hasProjects ? "\"has_projects\": \"%s\"," : "")
-                    .concat(hasWiki ? "\"has_wiki\": \"%s\"," : "")
-                    .concat(isTemplate ? "\"is_template\": \"%s\"," : "")
-                    .concat(autoInit ? "\"auto_init\": \"%s\"," : "")
-                    .concat(gitignoreTemplate != null ? "\"gitignore_template\": \"%s\"," : "")
-                    .concat(licenseTemplate != null ? "\"license_template\": \"%s\"," : "")
-                    .concat(allowSquashMerge ? "\"allow_squash_merge\": \"%s\"," : "")
-                    .concat(allowMergeCommit ? "\"allow_merge_commit\": \"%s\"," : "")
-                    .concat(allowRebaseMerge ? "\"allow_rebase_merge\": \"%s\"," : "")
-                    .concat(deleteBranchOnMerge ? "\"delete_branch_on_merge\": \"%s\"" : "")
-                     + "}",
-                    name,
-                    description,
-                    homepage,
-                    isPrivate,
-                    visibility,
-                    hasIssues,
-                    hasProjects,
-                    hasWiki,
-                    isTemplate,
-                    autoInit,
-                    gitignoreTemplate,
-                    licenseTemplate,
-                    allowSquashMerge,
-                    allowMergeCommit,
-                    allowRebaseMerge,
-                    deleteBranchOnMerge);
-            Repository.create(json);
-        }
     }
 }

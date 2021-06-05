@@ -7,10 +7,7 @@ import okhttp3.*;
 
 import java.io.IOException;
 
-/**
- * util class for building http requests and receiving the responses.
- */
-public class Network {
+class Network {
 
     private final OkHttpClient client;
     private final Gson gson = Github.getGson();
@@ -20,15 +17,15 @@ public class Network {
         this.client = client;
     }
 
-    protected <T> T get(String endPoint, Class<T> type, boolean isGson) {
+    protected <T> T get(String endPoint, Class<T> type) {
         Request request = new Request.Builder()
                 .url(Github.getRoot() + endPoint)
                 .build();
-        T result = null;
+        T result;
         try(Response response = client.newCall(request).execute()) {
             if(response.code() != 200) throw new HttpErrorException(response);
-            result = !isGson ? moshi.adapter(type).fromJson(response.body().source()) :
-            gson.fromJson(response.body().string(), type);
+            // check if type requires gson parser
+            result = moshi.adapter(type).fromJson(response.body().source());
         } catch (IOException e) {
             e.printStackTrace();
             return null;

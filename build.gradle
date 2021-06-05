@@ -50,6 +50,14 @@ publishing {
                 password = System.getenv('sonatypePw')
             }
         }
+        maven {
+            name = 'nexus'
+            url = version.endsWith("SNAPSHOT") ? "https://nexus.pcchin.com/repository/maven-snapshots/" : "https://nexus.pcchin.com/repository/maven-releases/"
+            credentials {
+                username = "weebkun"
+                password = System.getenv("nexusPw")
+            }
+        }
     }
 }
 
@@ -99,7 +107,6 @@ dependencies {
     implementation 'com.google.guava:guava:28.2-jre'
     implementation 'com.squareup.moshi:moshi:1.11.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
-    implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'org.kamranzafar:jtar:2.3'
     implementation 'org.apache.commons:commons-compress:1.20'
     testImplementation 'junit:junit:4.12'

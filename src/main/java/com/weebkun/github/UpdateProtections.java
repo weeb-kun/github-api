@@ -18,9 +18,10 @@ package com.weebkun.github;
 
 /**
  * used for updating the protection status of a branch.
- * set the public fields and pass to {@link Branch#updateProtection(ProtectionOptions)} to update.
+ * set the public fields and pass to {@link Branch#updateProtection(UpdateProtections)} to update.
  */
-public class ProtectionOptions {
+// todo maybe i can move this to github.Protections class as a method.
+public class UpdateProtections {
     // todo do javadoc
     public RequiredStatusChecks required_status_checks;
     public boolean enforce_admins;
@@ -37,6 +38,8 @@ public class ProtectionOptions {
      * parses this options object to a json string.
      * @return the json string
      */
+    // idk why i need to implement my own parser when i can just use gson or moshi but whatever. ill test it next time
+    // todo test parsing with gson/moshi
     public String parse() {
         return "{\"required_status_checks\":" + (required_status_checks != null ? required_status_checks.parse() : "null,") +
                 String.format("\"enforce_admins\":%s", enforce_admins) +

@@ -58,10 +58,10 @@ public class Branch {
 
     /**
      * updates this repo's branch protection policies.
-     * @param options the options obj specifying the protection policies to update. see {@link ProtectionOptions} for more info.
-     * @see ProtectionOptions
+     * @param options the options obj specifying the protection policies to update. see {@link UpdateProtections} for more info.
+     * @see UpdateProtections
      */
-    public void updateProtection(ProtectionOptions options) {
+    public void updateProtection(UpdateProtections options) {
         RequestBody body = RequestBody.create(options.parse(), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection", owner, repo, name))
@@ -157,7 +157,7 @@ public class Branch {
         return protection;
     }
 
-    public void updatePullRequestReviewPolicy(ProtectionOptions.RequiredPullRequestReviews policy) {
+    public void updatePullRequestReviewPolicy(UpdateProtections.RequiredPullRequestReviews policy) {
         RequestBody body = RequestBody.create(policy.parse(), MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name))

@@ -16,11 +16,6 @@ Copyright 2020 weebkun
 
 package com.weebkun.github;
 
-import okhttp3.Request;
-import okhttp3.Response;
-
-import java.io.IOException;
-
 /**
  * a user of github.
  */
@@ -58,16 +53,8 @@ public class User {
      * @return the array of repos
      */
     public Repository[] getRepos(String type, String sort, String direction) {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/users/%s/repos?type=%s&sort=%s&direction=%s", name, type, sort, direction))
-                .build();
-        Repository[] repositories = {};
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            repositories = Github.getGson().fromJson(response.body().string(), Repository[].class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return repositories;
+        return Github.getNetworkUtil().get(String.format("/users/%s/repos?type=%s&sort=%s&direction=%s", name, type, sort, direction),
+                Repository[].class);
     }
 
     /**
@@ -91,7 +78,7 @@ public class User {
      */
     public Repository[] getRepos(String type, String sort, String direction, int perPage, int page) {
         return Github.getNetworkUtil().get(String.format("/users/%s/repos?type=%s&sort=%s&direction=%s&per_page=%d&page=%d", name, type, sort, direction, perPage, page),
-                Repository[].class, true);
+                Repository[].class);
     }
 
     // omg kms
@@ -124,6 +111,7 @@ public class User {
     public int following;
     public String created_at;
     public String updated_at;
+
     // private info. requires user scope
     public int private_gists;
     public int total_private_repos;

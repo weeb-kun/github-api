@@ -53,13 +53,13 @@ public class Organisation {
      * creates a repository in a specified organisation.
      * the authenticated user must have access to this organisation and be able to create repositories in that organisation.
      *
-     * use {@link OrgBuilder} instead if you dont want to specify the json yourself.
+     * use {@link RepositoryBuilder} instead if you dont want to specify the json yourself.
      * @param org the name of the organisation
      * @param json the json string
      * @throws HttpErrorException if the user cannot create repositories in the specified organisation or another error occurred
-     * @see OrgBuilder
+     * @see RepositoryBuilder
      */
-    public static void createRepo(String org, String json) throws HttpErrorException {
+    public static void createRepository(String org, String json) throws HttpErrorException {
         RequestBody body = RequestBody.create(json, MediaType.get(Github.gsonMediaType));
         Request request = new Request.Builder()
                 .url(Github.getRoot() + String.format("/orgs/%s/repos", org))
@@ -74,10 +74,10 @@ public class Organisation {
 
     /**
      * creates a repository in this organisation.
-     * use {@link OrgBuilder} if you do not want to specify the json yourself.
+     * use {@link RepositoryBuilder} if you do not want to specify the json yourself.
      * @param json the json string
      * @throws HttpErrorException if an error was received
-     * @see OrgBuilder
+     * @see RepositoryBuilder
      */
     public void createRepo(String json) throws HttpErrorException{
         RequestBody body = RequestBody.create(json, MediaType.get(Github.gsonMediaType));
@@ -142,62 +142,12 @@ public class Organisation {
      * meant for creating a repository in an organisation. the authenticated user must be a member of that organisation.
      * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-an-organization-repository">the github docs</a> for more info
      */
-    public static final class OrgBuilder extends Repository.Builder {
+    public static final class RepositoryBuilder extends Repository.Builder {
         // post /orgs/{org}/repos
-
-        /**
-         * the organisation name.
-         */
-        public String org;
 
         /**
          * the team id that will be granted access to this repo.
          */
         public int teamId;
-
-        /**
-         * creates an organisation repository. authenticated user must be part of that organisation.
-         * @throws HttpErrorException if user cannot create repositories in this organisation or another error cause the create operation to fail.
-         */
-        @Override
-        public void build() throws HttpErrorException{
-            String json = String.format("{" +
-                            "'name':'%s'" +
-                            "'description': '%s'" +
-                            "'homepage': '%s'" +
-                            "'private': '%s'" +
-                            "'visibility': '%s'" +
-                            "'has_issues': '%s'" +
-                            "'has_projects': '%s'" +
-                            "'has_wiki': '%s'" +
-                            "'is_template': '%s'" +
-                            "'team_id': '%s'" +
-                            "'auto_init': '%s'" +
-                            "'gitignore_template': '%s" +
-                            "'license_template': '%s'" +
-                            "'allow_squash_merge': '%s'" +
-                            "'allow_merge_commit': '%s'" +
-                            "'allow_rebase_merge': '%s'" +
-                            "'delete_branch_on_merge': '%s'" +
-                            "}",
-                    name,
-                    description,
-                    homepage,
-                    isPrivate,
-                    visibility,
-                    hasIssues,
-                    hasProjects,
-                    hasWiki,
-                    isTemplate,
-                    teamId,
-                    autoInit,
-                    gitignoreTemplate,
-                    licenseTemplate,
-                    allowSquashMerge,
-                    allowMergeCommit,
-                    allowRebaseMerge,
-                    deleteBranchOnMerge);
-            Organisation.createRepo(this.org, json);
-        }
     }
 }

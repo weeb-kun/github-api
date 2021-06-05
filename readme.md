@@ -78,7 +78,7 @@ deletes a repository with a given owner and name.
 - `Github.listUserRepos(params)`<br>
 lists the authenticated user's repos.
 the `params` object is an `Options` object that specifies any query params in the request.
-see `com.weebkun.api.Options` for more info.
+see `com.weebkun.github.Options` for more info.
 see https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-repositories-for-the-authenticated-user
 for more info on the query params.
 
@@ -119,7 +119,7 @@ The github api provides various media types and previews that require special ac
 By default the `nebula-preview` and `mercy-preview` is used,
 but you can use whatever preview you like.
 
-These media types can be found at `com.weebkun.api.MediaTypes`.
+These media types can be found at `com.weebkun.github.MediaTypes`.
 
 For more info on the api previews, visit https://docs.github.com/en/free-pro-team@latest/rest/overview/api-previews.
 
