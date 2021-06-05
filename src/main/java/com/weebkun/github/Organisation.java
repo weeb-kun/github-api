@@ -1,12 +1,6 @@
 package com.weebkun.github;
 
 import com.weebkun.utils.HttpErrorException;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-import java.io.IOException;
 
 /**
  * represents an organisation.
@@ -66,23 +60,15 @@ public class Organisation {
      * @return the array of org repos
      * @see Options for more info on params
      */
-    public static Repository[] getRepos(String org, Options params) {
+    public static Repository[] getRepositories(String org, Options params) {
         if(params.perPage > 100) throw new IndexOutOfBoundsException("results per page exceeds 100.");
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/orgs/%s/repos"
-                        .concat(params.type != null ? String.format("?type=%s&", params.type) : "")
-                        .concat(params.sort != null ? String.format("sort=%s&", params.sort) : "")
-                        .concat(params.direction != null ? String.format("direction=%s&", params.direction) : "")
-                        .concat(params.perPage != 0 ? String.format("per_page=%d&", params.perPage) : "")
-                        .concat(params.page != 0 ? String.format("page=%d", params.page) : ""), org))
-                .build();
-        Repository[] repositories = {};
-        try (Response response = Github.getClient().newCall(request).execute()) {
-            repositories = Github.getMoshi().adapter(Repository[].class).fromJson(response.body().source());
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-        return repositories;
+        return Github.getNetworkUtil().get(String.format("/orgs/%s/repos"
+                .concat(params.type != null ? String.format("?type=%s&", params.type) : "")
+                .concat(params.sort != null ? String.format("sort=%s&", params.sort) : "")
+                .concat(params.direction != null ? String.format("direction=%s&", params.direction) : "")
+                .concat(params.perPage != 0 ? String.format("per_page=%d&", params.perPage) : "")
+                .concat(params.page != 0 ? String.format("page=%d", params.page) : ""), org),
+                Repository[].class);
     }
 
     /**
@@ -91,63 +77,39 @@ public class Organisation {
      * @return the array of repos
      * @see Options
      */
-    public Repository[] getRepos(Options params) {
-        return Organisation.getRepos(this.name, params);
-    }
-
-    /**
-     * creates a repository in a specified organisation.
-     * the authenticated user must have access to this organisation and be able to create repositories in that organisation.
-     *
-     * use {@link RepositoryAdapter} instead if you dont want to specify the json yourself.
-     * @param org the name of the organisation
-     * @param json the json string
-     * @throws HttpErrorException if the user cannot create repositories in the specified organisation or another error occurred
-     * @see RepositoryAdapter
-     */
-    public static void createRepository(String org, String json) throws HttpErrorException {
-        RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/orgs/%s/repos", org))
-                .post(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 201) throw new HttpErrorException(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public Repository[] getRepositories(Options params) {
+        return Organisation.getRepositories(this.name, params);
     }
 
     /**
      * creates a repository in this organisation.
      * use {@link RepositoryAdapter} if you do not want to specify the json yourself.
-     * @param json the json string
+     * @param adapter the new
      * @throws HttpErrorException if an error was received
      * @see RepositoryAdapter
      */
-    public void createRepo(String json) throws HttpErrorException{
-        RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/orgs/%s/repos", this.name))
-                .post(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 201) throw new HttpErrorException(response);
-        } catch (IOException e) {
-             e.printStackTrace();
-        }
+    public void createRepository(RepositoryAdapter adapter) throws HttpErrorException{
+        Github.getNetworkUtil().post(String.format("/orgs/%s/repos", this.name),
+                Github.getMoshi().adapter(RepositoryAdapter.class).nonNull().toJson((RepositoryAdapter) adapter.setArchived(null)));
     }
 
     /**
-     * meant for creating a repository in an organisation. the authenticated user must be a member of that organisation.
+     * adapter to create a repository in an organisation. the authenticated user must be a member of that organisation.
      * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-an-organization-repository">the github docs</a> for more info
      */
     public static final class RepositoryAdapter extends Repository.Adapter {
         // post /orgs/{org}/repos
 
-        /**
-         * the team id that will be granted access to this repo.
-         */
-        public int teamId;
+        private int teamId;
+        private String org;
+        transient String owner;
+
+        public void setTeamId(int teamId) {
+            this.teamId = teamId;
+        }
+
+        public RepositoryAdapter() {
+            super("");
+        }
     }
 }

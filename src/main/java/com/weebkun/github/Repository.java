@@ -269,15 +269,7 @@ public class Repository {
      * @throws UnauthorisedException if the user does not have access to the repository
      */
     public void delete() throws UnauthorisedException{
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s", owner.getName(), name))
-                .delete()
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 204) throw new UnauthorisedException(response);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+        Github.getNetworkUtil().delete(String.format("/repos/%s/%s", owner.getName(), name));
     }
 
     public Adapter adapter() {
@@ -774,7 +766,7 @@ public class Repository {
      * chain the setters to set the values.
      */
     public static class Adapter {
-        private transient String owner;
+        private final transient String owner;
         protected String name;
         protected String description;
         protected String homepage;
@@ -896,7 +888,7 @@ public class Repository {
         }
 
         /**
-         * updates this repository<br>
+         * updates the repository that this adapter is attached to<br>
          * the user must own this repo, else an {@link UnauthorisedException} will be thrown.
          */
         public void update() {
