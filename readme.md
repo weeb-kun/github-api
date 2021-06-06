@@ -115,4 +115,4 @@ create a new `Github.Builder` object, add the desired interceptors and event lis
 and then call `.build()`.
 
 ## Documentation
-docs can be found at https://javadoc.io/doc/com.github.weeb-kun/github-api/0.0.1/index.html.
+docs can be found at https://javadoc.io/doc/com.github.weeb-kun/github-api/latest/index.html.
