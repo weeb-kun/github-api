@@ -56,24 +56,8 @@ get a repository by a given owner and name of the repo.
 get all public repos updated since a given timestamp. paginate using perPage.
 filter the results by visibility.
 
-- `class Builder`<br>
-create a new repository.
-instantiate a new `Builder` object and set the properties needed,
-then call `build()` on the builder instance to create the repo.
-see the docs for more info.
-
 - `static create(templateOwner, templateName, owner, name, description, isPrivate)`<br>
 create a new repository from a template repo.
-
-- `class UpdateRepo`<br>
-another builder class to update an existing repo.
-call `update()` on an existing repository to get back an `UpdateRepo` object.
-use this object to update the repository before calling `updateRepo.update()`
-to persist to github.
-see the docs for more info.
-
-- `static delete(owner, name)`<br>
-deletes a repository with a given owner and name.
 
 - `Github.listUserRepos(params)`<br>
 lists the authenticated user's repos.
@@ -84,10 +68,6 @@ for more info on the query params.
 
 - `Organisation.getRepos(org)`<br>
 gets a list of repos in an organisation.
-
-- `class Organisation.OrgBuilder`<br>
-builder class to create a repo in an organisation.
-authenticated user must have explicit permission to create repos in the specified organisation.
 
 #### Users
 
