@@ -81,4 +81,16 @@ class Network {
             e.printStackTrace();
         }
     }
+
+    protected void delete(String endPoint, String json) {
+        Request request = new Request.Builder()
+                .url(Github.getRoot() + endPoint)
+                .delete(RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE)))
+                .build();
+        try(Response response = client.newCall(request).execute()) {
+            if(response.code() != 204) throw new HttpErrorException(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

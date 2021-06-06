@@ -44,17 +44,26 @@ public class Branch {
     public Protection protection;
     public String protection_url;
 
+    protected String getEndPoint(String endPoint) {
+        return String.format("/repos/%s/%s/branches/%s/%s", owner, repo, name, endPoint);
+    }
+
     /**
      * gets the protection status of a branch.
      * @return the branch's protection status
      */
     public Protection getProtection() {
-        Protection protection = Github.getNetworkUtil().get(String.format("/repos/%s/%s/branches/%s/protection", owner, repo, name),
+        Protection protection = Github.getNetworkUtil().get(getEndPoint("/protection"),
         Protection.class);
         protection.owner = owner;
         protection.repo = repo;
         protection.name = name;
+        protection.branch = this;
         return protection;
+    }
+
+    public void rename(String name) {
+        Github.getNetworkUtil().post(getEndPoint("/rename"), String.format("{\"new_name\": \"%s\"}", name));
     }
 
     /**
@@ -64,6 +73,7 @@ public class Branch {
         private transient String owner;
         private transient String repo;
         private transient String name;
+        private transient Branch branch;
         public String url;
         public RequiredStatusChecks required_status_checks;
         public EnforceAdmins enforce_admins;
@@ -77,7 +87,7 @@ public class Branch {
          * updates this branch's protection policies
          */
         public void update() {
-            Github.getNetworkUtil().put(String.format("/repos/%s/%s/branches/%s/protection", owner, repo, name),
+            Github.getNetworkUtil().put(branch.getEndPoint("/protection"),
                     Github.getMoshi().adapter(Protection.class).toJson(this));
         }
 
@@ -86,16 +96,16 @@ public class Branch {
          * after calling this method, this branch will no longer be protected.
          */
         public void disable() {
-            Github.getNetworkUtil().delete(String.format("/repos/%s/%s/branches/%s/protection", owner, repo, name));
+            Github.getNetworkUtil().delete(branch.getEndPoint("/protection"));
         }
 
         /**
          * gets the current setting for admin enforcement for this protected branch
          * @return the enforce admins setting
          */
-        public Protection.EnforceAdmins isAdminPolicyEnforced() {
-            return Github.getNetworkUtil().get(String.format("/repos/%s/%s/branches/%s/protection/enforce_admins", owner, repo, name),
-                    Protection.EnforceAdmins.class);
+        public EnforceAdmins isAdminPolicyEnforced() {
+            return Github.getNetworkUtil().get(branch.getEndPoint("/protection/enforce_admins"),
+                    EnforceAdmins.class);
         }
 
         /**
@@ -103,8 +113,8 @@ public class Branch {
          * @param enforce set true to enforce the admin branch protection
          */
         public void enforceAdmins(boolean enforce) {
-            if(enforce) Github.getNetworkUtil().post(String.format("/repos/%s/%s/branches/%s/protection/enforce_admins", owner, repo, name), "");
-            else Github.getNetworkUtil().delete(String.format("/repos/%s/%s/branches/%s/protection/enforce_admins", owner, repo, name));
+            if(enforce) Github.getNetworkUtil().post(branch.getEndPoint("/protection/enforce_admins"), "");
+            else Github.getNetworkUtil().delete(branch.getEndPoint("/protection/enforce_admins"));
         }
 
         /**
@@ -112,9 +122,9 @@ public class Branch {
          * use the luke cage preview media type to get back the {@code required_approving_review_count}
          * @return the pull request review object
          */
-        public Protection.RequiredPullRequestReviews getRequiredPullRequestReviewPolicy() {
-            return Github.getNetworkUtil().get(String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name),
-                    Protection.RequiredPullRequestReviews.class);
+        public RequiredPullRequestReviews getRequiredPullRequestReviewPolicy() {
+            return Github.getNetworkUtil().get(branch.getEndPoint("/protection/required_pull_request_reviews"),
+                    RequiredPullRequestReviews.class);
         }
 
         /**
@@ -122,10 +132,10 @@ public class Branch {
          * @param policy the policy object
          * @param enabled indicate whether to disable this policy or leave it enabled
          */
-        public void updatePullRequestReviewPolicy(Protection.RequiredPullRequestReviews policy, boolean enabled) {
-            if(enabled) Github.getNetworkUtil().patch(String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name),
-                    Github.getMoshi().adapter(Protection.RequiredPullRequestReviews.class).toJson(policy));
-            else Github.getNetworkUtil().delete(String.format("/repos/%s/%s/branches/%s/protection/required_pull_request_reviews", owner, repo, name));
+        public void updatePullRequestReviewPolicy(RequiredPullRequestReviews policy, boolean enabled) {
+            if(enabled) Github.getNetworkUtil().patch(branch.getEndPoint("/protection/required_pull_request_reviews"),
+                    Github.getMoshi().adapter(RequiredPullRequestReviews.class).toJson(policy));
+            else Github.getNetworkUtil().delete(branch.getEndPoint("/protection/required_pull_request_reviews"));
         }
 
         /**
@@ -133,9 +143,9 @@ public class Branch {
          * requires the zzzax preview media type.
          * @return the commit signature policy
          */
-        public Protection.RequireCommitSignatures getCommitSignaturePolicy() {
-            return Github.getNetworkUtil().get(String.format("/repos/%s/%s/branches/%s/protection/required_signatures", owner, repo, name),
-                    Protection.RequireCommitSignatures.class);
+        public RequireCommitSignatures getCommitSignaturePolicy() {
+            return Github.getNetworkUtil().get(branch.getEndPoint("/protection/required_signatures"),
+                    RequireCommitSignatures.class);
         }
 
         /**
@@ -143,14 +153,44 @@ public class Branch {
          * @param enabled indicates whether the policy is enabled or disabled
          */
         public void updateCommitSignaturePolicy(boolean enabled) {
-            if(enabled) Github.getNetworkUtil().post(String.format("/repos/%s/%s/branches/%s/protection/required_signatures", owner, repo, name),
+            if(enabled) Github.getNetworkUtil().post(branch.getEndPoint("/protection/required_signatures"),
                     "");
-            else Github.getNetworkUtil().delete(String.format("/repos/%s/%s/branches/%s/protection/required_signatures", owner, repo, name));
+            else Github.getNetworkUtil().delete(branch.getEndPoint("/protection/required_signatures"));
         }
 
-        public Protection.RequiredStatusChecks getStatusCheckPolicy() {
-            return Github.getNetworkUtil().get(String.format("/repos/%s/%s/branches/%s/protection/required_status_checks", owner, repo, name),
-                    Protection.RequiredStatusChecks.class);
+        public RequiredStatusChecks getStatusCheckPolicy() {
+            return Github.getNetworkUtil().get(branch.getEndPoint("/protection/required_status_checks"),
+                    RequiredStatusChecks.class);
+        }
+
+        public void updateStatusCheckPolicy(RequiredStatusChecks policy, boolean enabled) {
+            if(enabled) Github.getNetworkUtil().patch(branch.getEndPoint("/protection/required_status_checks"),
+                    Github.getMoshi().adapter(RequiredStatusChecks.class).toJson(policy));
+            else Github.getNetworkUtil().delete(branch.getEndPoint("/protection/required_status_checks"));
+        }
+
+        public String[] getStatusCheckContexts() {
+            return Github.getNetworkUtil().get(branch.getEndPoint("/protection/required_status_checks/contexts"),
+                    String[].class);
+        }
+
+        public void addStatusCheckContexts(String[] contexts) {
+            Github.getNetworkUtil().post(branch.getEndPoint("/protection/required_status_checks/contexts"),
+                    Github.getMoshi().adapter(String[].class).toJson(contexts));
+        }
+
+        /**
+         * the previous contexts will be overwritten by {@code contexts}
+         * @param contexts the new contexts
+         */
+        public void setStatusCheckContexts(String[] contexts) {
+            Github.getNetworkUtil().put(branch.getEndPoint("/protection/required_status_checks/contexts"),
+                    Github.getMoshi().adapter(String[].class).toJson(contexts));
+        }
+
+        public void removeStatusCheckContexts(String[] contexts) {
+            Github.getNetworkUtil().delete(branch.getEndPoint("/protection/required_status_checks/contexts"),
+                    Github.getMoshi().adapter(String[].class).toJson(contexts));
         }
 
         /**
@@ -158,12 +198,12 @@ public class Branch {
          * if {@code enabled} is set to true, admins are also subject to the protection policies,
          * else admins are ignored(i.e. not restricted).
          */
-        static class EnforceAdmins {
+        public static class EnforceAdmins {
             public String url;
             public boolean enabled;
         }
 
-        static class RequiredStatusChecks {
+        public static class RequiredStatusChecks {
             public String url;
             public String enforcement_level;
             /**
@@ -174,7 +214,7 @@ public class Branch {
             public String contexts_url;
         }
 
-        static class RequiredPullRequestReviews {
+        public static class RequiredPullRequestReviews {
             public String url;
             public DismissalRestrictions dismissal_restrictions;
             public boolean dismiss_stale_reviews;
@@ -182,7 +222,7 @@ public class Branch {
             public int required_approving_review_count;
         }
 
-        static class DismissalRestrictions {
+        public static class DismissalRestrictions {
             public String url;
             public String users_url;
             public String teams_url;
@@ -190,7 +230,7 @@ public class Branch {
             public Team[] teams;
         }
 
-        static class Restrictions {
+        public static class Restrictions {
             String url;
             public String users_url;
             public String teams_url;
@@ -200,22 +240,22 @@ public class Branch {
             public App[] apps;
         }
 
-        static class RequiredLinearHistory {
+        public static class RequiredLinearHistory {
             public boolean enabled;
         }
 
-        static class AllowForcePushes {
+        public static class AllowForcePushes {
             public boolean enabled;
         }
 
-        static class AllowDeletions {
+        public static class AllowDeletions {
             public boolean enabled;
         }
 
         /**
          * requires zzzax preview
          */
-        static class RequireCommitSignatures {
+        public static class RequireCommitSignatures {
             public String url;
             public boolean enabled;
         }
