@@ -180,60 +180,6 @@ public class Repository {
                 Repository[].class);
     }
 
-    // todo might consider removing the static methods
-    /**
-     * update a repository.
-     * @param owner the owner of the repo
-     * @param name the name of the repo
-     * @param json the json string containing parameters to update
-     * @throws HttpErrorException when a http error was received
-     * @throws UnauthorisedException if you do not have access to the specified resource
-     * see <a href="https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#update-a-repository">github</a> for more info on params
-     */
-    public static void update(String owner, String name, String json) throws UnauthorisedException{
-        Github.getNetworkUtil().patch(String.format("/repos/%s/%s", owner, name), json);
-    }
-
-    /**
-     * deletes a repository.
-     * if the user does not have admin access to the repo, a 403 forbidden response will be received, and an {@code UnauthorisedException} will be thrown.
-     * if the app does not have the delete_repo scope, an {@code UnauthorisedException} will also be thrown.
-     * @param owner the name of the owner
-     * @param name the name of the repo
-     * @throws UnauthorisedException if the delete_repo scope is not present or if the user cannot delete the repo. e.g. organisation repo.
-     */
-    public static void delete(String owner, String name) throws UnauthorisedException {
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + String.format("/repos/%s/%s", owner, name))
-                .delete()
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()) {
-            if(response.code() != 204) throw new UnauthorisedException(response);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * creates a repository for the authenticated user.
-     * use {@link Adapter} if you don't want to build the json string yourself.
-     * @param json the json string
-     * @throws HttpErrorException if the create operation failed
-     */
-    public static void create(String json) throws HttpErrorException{
-        // post /user/repos
-        RequestBody body = RequestBody.create(json, MediaType.get(MediaTypes.REQUEST_BODY_TYPE));
-        Request request = new Request.Builder()
-                .url(Github.getRoot() + "/user/repos")
-                .post(body)
-                .build();
-        try(Response response = Github.getClient().newCall(request).execute()){
-            if(response.code() != 201) throw new HttpErrorException(response);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * creates a new repository from a template.<br>
      * Scopes needed: {@code public_repo} for public repos or {@code repo} for private.

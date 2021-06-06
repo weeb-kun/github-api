@@ -33,7 +33,7 @@ public class Github {
     private static final String ROOT = "https://api.github.com";
     private static OkHttpClient client = new OkHttpClient();
     private static String USER_AGENT = "Java-github-api";
-    private static final Moshi moshi = new Moshi.Builder().build();
+    private static final Moshi moshi = new Moshi.Builder().add(new Branch.Protection.UpdateAdapter()).build();
     private static final Network networkUtil;
 
     static {
